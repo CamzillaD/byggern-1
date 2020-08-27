@@ -28,14 +28,20 @@ $(BUILD_DIR)/main.hex: $(OBJECTS) | $(BUILD_DIR)
 	$(CC) $(CFLAGS) $^ -o $(BUILD_DIR)/a.out
 	avr-objcopy -j .text -j .data -O ihex $(BUILD_DIR)/a.out $@
 
+.PHONY: fuse
+fuse :
+	avrdude -p $(TARGET_DEVICE) -c $(PROGRAMMER) -U efuse:w:0xff:m
+	avrdude -p $(TARGET_DEVICE) -c $(PROGRAMMER) -U hfuse:w:0x91:m
+	avrdude -p $(TARGET_DEVICE) -c $(PROGRAMMER) -U lfuse:w:0xed:m
+
 .PHONY: flash
-flash: $(BUILD_DIR)/main.hex
+flash : $(BUILD_DIR)/main.hex
 	avrdude -p $(TARGET_DEVICE) -c $(PROGRAMMER) -U flash:w:$<:i
 
 .PHONY: clean
-clean:
+clean :
 	rm -rf $(BUILD_DIR)
 
 .PHONY: erase
-erase:
+erase :
 	avrdude -p $(TARGET_DEVICE) -c $(PROGRAMMER) -e
