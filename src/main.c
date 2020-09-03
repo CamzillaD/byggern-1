@@ -1,6 +1,7 @@
 #include <avr/io.h>
 #include "uart.h"
 #include "stdio.h"
+#include "sram_test.h"
 
 /* Internal RC oscillator */
 /* #define F_CPU 8000000UL */
@@ -12,16 +13,53 @@
 int main(){
     CLKPR |= (1<<CLKPCE);
 
-    volatile char *ext_ram = (char *) 0x1800; // Start address for the SRAM
+    uart_init();
+    fdevopen(UART_Transmit,UART_recieve);
+
+
+    //volatile char *ext_ram = (char *) 0x1800; // Start address for the SRAM
     MCUCR |= (1<<SRE);
+
+    SFIOR |= (1<<XMM2); //mask out JTAG-pins from adress-line
+    SRAM_test();
+
+
     
-    while(1){
-    ext_ram[0x0F]=0xFF; 
-    }
 
     return 0;
 }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*
+while(1){
+    ext_ram[0x0F]=0xFF;  test av latch
+    }
+*/
 
 /*
  uart_init();
