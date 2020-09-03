@@ -12,7 +12,19 @@
 int main(){
     CLKPR |= (1<<CLKPCE);
 
-    uart_init();
+    volatile char *ext_ram = (char *) 0x1800; // Start address for the SRAM
+    MCUCR |= (1<<SRE);
+    
+    while(1){
+    ext_ram[0x0F]=0xFF; 
+    }
+
+    return 0;
+}
+
+
+/*
+ uart_init();
     fdevopen(UART_Transmit,UART_recieve);
 
     while(1){
@@ -20,12 +32,7 @@ int main(){
     _delay_ms(500);
     }
 
-    
-
-    return 0;
-}
-
-
+*/
 
 
 //    CLKPR |= (1<<CLKPCE);
