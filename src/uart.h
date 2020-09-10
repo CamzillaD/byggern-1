@@ -1,19 +1,12 @@
-#ifndef UART_H 
+#ifndef UART_H
 #define UART_H
 #define UART_BAUDRATE_REGISTER 31
+#include <stdint.h>
 
-
-
-//initialize
 void uart_init();
 
-//tramsnitting
+void uart_send(uint8_t byte);
 
-void UART_Transmit(unsigned char data);
-
-//recieving
-
-unsigned char UART_recieve();
-
+uint8_t uart_recv();
 
 #endif
