@@ -1,5 +1,6 @@
 #include "uart.h"
 #include <avr/io.h>
+#include <stdio.h>
 
 void uart_init(){
     UBRR0H = (uint8_t)(UART_BAUDRATE_REGISTER >> 8);
@@ -20,3 +21,15 @@ uint8_t uart_recv(){
 
     return UDR0;
 }
+
+/*
+void uart_test(){
+    uart_init();
+    fdevopen(UART_Transmit,UART_recieve);
+
+    while(1){
+    printf("Hei");
+    _delay_ms(500);
+    }
+}
+*/

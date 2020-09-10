@@ -1,7 +1,10 @@
 #include <avr/io.h>
 #include "uart.h"
 #include "stdio.h"
-#include "sram_test.h"
+//#include "sram_test.h"
+#include "adc_driver.h"
+#include "sram_driver.h"
+
 
 /* Internal RC oscillator */
 /* #define F_CPU 8000000UL */
@@ -10,79 +13,34 @@
 #define F_CPU 4915200UL
 #include <util/delay.h>
 
+extern volatile char *ext_ram; // Start address for the SRAM
+
+
 int main(){
     CLKPR |= (1<<CLKPCE);
-
-    uart_init();
-    fdevopen(UART_Transmit,UART_recieve);
-
-
-    //volatile char *ext_ram = (char *) 0x1800; // Start address for the SRAM
-    MCUCR |= (1<<SRE);
-
-    SFIOR |= (1<<XMM2); //mask out JTAG-pins from adress-line
-    SRAM_test();
-
-
     
+    uart_init();
+    fdevopen((int (*)(char, FILE*)) UART_Transmit,(int (*)(FILE*)) UART_recieve);
+    //DDRC |= (1 << PC2);
+    //PORTC &= ~(1 << PC2);
+    ext_address_initialize();
+    //SRAM_test();
+
+    adc_init();
+
+
+    while(1){
+        
+        char letter = UART_recieve();
+        UART_Transmit(letter);
+
+        uint8_t sample = adc_test();
+        printf("Sample: %d\n\r", sample);
+    }
+
+
+
+
 
     return 0;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/*
-while(1){
-    ext_ram[0x0F]=0xFF;  test av latch
-    }
-*/
-
-/*
- uart_init();
-    fdevopen(UART_Transmit,UART_recieve);
-
-    while(1){
-    printf("Hei");
-    _delay_ms(500);
-    }
-
-*/
-
-
-//    CLKPR |= (1<<CLKPCE);
-    /* Init port */
-//    DDRB |= (1 << PB0);
-//    PORTB |= (1 << PB0);
-
-    /* Toggle */
-//    while(1){
-//        PORTB &= ~(1 << PB0);
-//        _delay_ms(500);
-
-//        PORTB |= (1 << PB0);
-//        _delay_ms(500);
-//    }
