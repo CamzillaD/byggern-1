@@ -4,9 +4,13 @@
 
 //Access address space 
 
-void adc_init();
+void adc_driver_init();
 
-uint8_t adc_test();
+uint8_t adc_driver_test();
+uint8_t adc_driver_testA1();
+uint8_t adc_driver_test_sliders();
+
+uint8_t adc_driver_busy();
 
 #endif
 

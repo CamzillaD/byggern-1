@@ -1,4 +1,5 @@
 #include "sram_test.h"
+#include <stdio.h>
 
     void SRAM_test(void)
     {
@@ -6,7 +7,7 @@
         uint16_t ext_ram_size = 0x800;
         uint16_t write_errors = 0;
         uint16_t retrieval_errors = 0;
-        printf("Starting SRAM test...\n");
+        printf("Starting SRAM test...\n\r");
         // rand() stores some internal state, so calling this function in a loop will
         // yield different seeds each time (unless srand() is called before this function)
         uint16_t seed = rand();
@@ -32,5 +33,5 @@
                 retrieval_errors++;
             }
         }
-        printf("SRAM test completed with \n%4d errors in write phase and \n%4d errors in retrieval phase\n\r", write_errors, retrieval_errors);
+        printf("SRAM test completed with \n\r%4d errors in write phase and \n\r%4d errors in retrieval phase\n\r", write_errors, retrieval_errors);
 }
