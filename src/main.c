@@ -1,6 +1,5 @@
 #include <avr/io.h>
 #include "uart.h"
-#include "adc.h"
 #include "hid.h"
 #include "display.h"
 
@@ -8,6 +7,7 @@
 #include <util/delay.h>
 
 #include <stdio.h>
+#include <avr/interrupt.h>
 
 static void system_init(){
     /* System clock prescaler of 1 */
@@ -23,21 +23,21 @@ static void system_init(){
 int main(){
     system_init();
 
-    adc_init();
+    hid_init();
+    sei();
 
     uart_init();
     fdevopen((int (*)(char, FILE*)) uart_send,(int (*)(FILE*)) uart_recv);
-
-    hid_buttons_init();
-
-    JoystickPosition pos;
-    SliderPosition slider_pos;
 
 
     volatile uint8_t * disp_c = (volatile uint8_t *)0x1000;
 
     uint16_t loop = 0;
     uint8_t flash_on = 1;
+
+    HidJoystick joystick;
+    HidSlider slider;
+    HidButton button;
 
     while(1){
         loop++;
@@ -57,14 +57,18 @@ int main(){
         }
         _delay_ms(1);
 
-        adc_sample();
+        joystick = hid_joystick_read();
+        slider = hid_slider_read();
+        button = hid_button_read();
 
         printf(
-            "CH0: %3d CH1: %3d CH2: %3d CH3: %3d\n\r",
-            adc_read(ADC_CHANNEL_0),
-            adc_read(ADC_CHANNEL_1),
-            adc_read(ADC_CHANNEL_2),
-            adc_read(ADC_CHANNEL_3)
+            "BL: %1d BR: %1d JX: %3d JY: %3d SL: %3d SR: %3d\n\r",
+            button.left,
+            button.right,
+            joystick.x,
+            joystick.y,
+            slider.left,
+            slider.right
         );
     }
 
