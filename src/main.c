@@ -1,32 +1,32 @@
 #include <avr/io.h>
 #include "uart.h"
-#include "stdio.h"
-#include "sram_test.h"
 #include "adc.h"
-#include "sram_driver.h"
 #include "hid.h"
 #include "display.h"
 
-
-/* Internal RC oscillator */
-/* #define F_CPU 8000000UL */
-
-/* External quartz oscillator */
 #define F_CPU 4915200UL
 #include <util/delay.h>
 
-extern volatile char *ext_ram; // Start address for the SRAM
+#include <stdio.h>
+
+static void system_init(){
+    /* System clock prescaler of 1 */
+    CLKPR = (1 << CLKPCE);
+
+    /* Enable external memory interface */
+    MCUCR |= (1 << SRE);
+
+    /* Mask out JTAG pins from external address lines */
+    SFIOR |= (1 << XMM2);
+}
 
 int main(){
-    CLKPR |= (1<<CLKPCE);
-    
+    system_init();
+
+    adc_init();
+
     uart_init();
     fdevopen((int (*)(char, FILE*)) uart_send,(int (*)(FILE*)) uart_recv);
-    //DDRC |= (1 << PC2);
-    //PORTC &= ~(1 << PC2);
-    ext_address_initialize();
-    SRAM_test();
-    adc_init();
 
     hid_buttons_init();
 
@@ -57,7 +57,6 @@ int main(){
         }
         _delay_ms(1);
 
-        
         adc_sample();
 
         printf(
@@ -67,7 +66,6 @@ int main(){
             adc_read(ADC_CHANNEL_2),
             adc_read(ADC_CHANNEL_3)
         );
-        
     }
 
     return 0;
