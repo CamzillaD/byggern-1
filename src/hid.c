@@ -12,8 +12,8 @@ void hid_init(){
 
 HidJoystick hid_joystick_read(){
     HidJoystick v;
-    v.x = adc_read(ADC_CHANNEL_0);
-    v.y = adc_read(ADC_CHANNEL_1);
+    v.y = adc_read(ADC_CHANNEL_0);
+    v.x = adc_read(ADC_CHANNEL_1);
     return v;
 }
 

@@ -26,36 +26,37 @@ int main(){
     hid_init();
     sei();
 
+    display_init();
+
     uart_init();
     fdevopen((int (*)(char, FILE*)) uart_send,(int (*)(FILE*)) uart_recv);
 
 
     volatile uint8_t * disp_c = (volatile uint8_t *)0x1000;
+    volatile uint8_t * disp_d = (volatile uint8_t *)0x1200;
 
     uint16_t loop = 0;
-    uint8_t flash_on = 1;
 
     HidJoystick joystick;
     HidSlider slider;
     HidButton button;
 
+    
+    //display_push_ram_to_oled();
+    
     while(1){
-        loop++;
-        if(loop > 10){
+        
+        //loop++;
+        if(loop > 9){
             loop = 0;
 
-            if(flash_on){
-                *disp_c = 0xaf;
-                _delay_us(10);
-                *disp_c = 0xa5;
-            }
-            else{
-                *disp_c = 0xae;
-            }
-
-            flash_on = !flash_on;
+            *disp_d = 0xa6;
+            _delay_ms(1000);
+            *disp_d = 0xa7;
         }
-        _delay_ms(1);
+        
+        
+        _delay_ms(5);
 
         joystick = hid_joystick_read();
         slider = hid_slider_read();
