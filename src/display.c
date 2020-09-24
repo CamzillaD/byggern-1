@@ -1,94 +1,90 @@
 #include "display.h"
 #include <stdint.h>
+#include <avr/interrupt.h>
 
 #define DISPLAY_C_MEM ((volatile uint8_t *)0x1000)
 #define DISPLAY_D_MEM ((volatile uint8_t *)0x1200)
 
-void display_clear(){
-    for(int j = 0; j < 8; j++){
+static void display_seek_page(uint8_t page){
+    *DISPLAY_C_MEM = (0xb0 | page);
 
-        *DISPLAY_C_MEM = 0xb0 | j;
-        *DISPLAY_C_MEM = 0x00;
-        *DISPLAY_C_MEM = 0x1f;
-
-        for (int i = 0; i < 128; i++){
-        *DISPLAY_D_MEM = 0x00;
-        }
-    }
+    /* Start at column 0 */
+    *DISPLAY_C_MEM = 0x00;
+    *DISPLAY_C_MEM = 0x10;
 }
 
-void display_push_ram_to_oled(){
-    for (int i = 0; i < 8; i++){
-        *DISPLAY_C_MEM = 0xB0 | i;  //set page ram start
-        *DISPLAY_C_MEM = 0x00;
-        *DISPLAY_C_MEM = 0x1f;
-        if(i != 10){
-            for(int j = 0; j < 128; j++){
-                *DISPLAY_D_MEM = 0x01;
-            
-            }
+void display_clear(){
+    for(uint8_t page = 0; page < 8; page++){
+        display_seek_page(page);
+        for(uint8_t seg = 0; seg < 128; seg++){
+            *DISPLAY_D_MEM = 0x00;
         }
     }
 }
 
 void display_init(){
-    *DISPLAY_C_MEM = 0xae;  //Display off
+    /* Globally disable interrupts during init */
+    cli();
 
-    *DISPLAY_C_MEM = 0xa0;  //Set column 0 as SEG0
+    /* Display off */
+    *DISPLAY_C_MEM = 0xae;
 
-    *DISPLAY_C_MEM = 0xda;  //Set COM Pins Hardware Configuration
-    *DISPLAY_C_MEM = 0x12;  //Alternative COM pin configuration, Disable COM L/R remap
+    /* Segments remap */
+    *DISPLAY_C_MEM = 0xa1;
 
-    *DISPLAY_C_MEM = 0xc8;  //Set COM output scan direction (COM0-COM[N-1])
+    /* COM lines according to display wire up */
+    *DISPLAY_C_MEM = 0xda;
+    *DISPLAY_C_MEM = 0x12;
 
-    *DISPLAY_C_MEM = 0xa8;  //multiplex ration mode:63
-    *DISPLAY_C_MEM = 0x3f;  //63
+    /* COM lines scan direction 63..0 */
+    *DISPLAY_C_MEM = 0xc8;
 
-    *DISPLAY_C_MEM = 0xd5;  //Set Display Divide ratio
-    *DISPLAY_C_MEM = 0x40;
+    /* Multiplex ratio 63 */
+    *DISPLAY_C_MEM = 0xa8;
+    *DISPLAY_C_MEM = 0x3f;
 
-    *DISPLAY_C_MEM = 0x81;  //Set contrast
-    *DISPLAY_C_MEM = 0xaa;  //Value of contrast
+    /* Display clock divider */
+    *DISPLAY_C_MEM = 0xd5;
+    *DISPLAY_C_MEM = 0x80;
 
-    *DISPLAY_C_MEM = 0xd9;  //Set Pre-charge Period
+    /* Contrast */
+    *DISPLAY_C_MEM = 0x81;
+    *DISPLAY_C_MEM = 0x50; // aa
+
+    /* Pre-charge period */
+    *DISPLAY_C_MEM = 0xd9;
     *DISPLAY_C_MEM = 0x21;
 
-    *DISPLAY_C_MEM = 0x20;  //Set addressing mode to Page Addressing Mode
+
+    /* Page addressing mode */
+    *DISPLAY_C_MEM = 0x20;
     *DISPLAY_C_MEM = 0x02;
 
-    *DISPLAY_C_MEM = 0x00;  //Setting Column 0 as start address for page addressing mode
 
-    *DISPLAY_C_MEM = 0xdb;  //Set V_COMH
+    /* Voltage output */
+    *DISPLAY_C_MEM = 0xdb;
     *DISPLAY_C_MEM = 0x30;
 
-    *DISPLAY_C_MEM = 0xad;  //Set ext or int I_REF ?
+    /* External 510k current sense */
+    *DISPLAY_C_MEM = 0xad;
     *DISPLAY_C_MEM = 0x00;
 
-    *DISPLAY_C_MEM = 0x40;
+    /* OLED follows GDDSRAM */
+    *DISPLAY_C_MEM = 0xa4;
 
-    *DISPLAY_C_MEM = 0xa4;  //Set follow RAM
+    /* Display start line 0 */
+    //*DISPLAY_C_MEM = 0x40;
 
-    *DISPLAY_C_MEM = 0xa6;  //Set normal display mode
+    /* Normal (non-inverted) display */
+    *DISPLAY_C_MEM = 0xa6;
+
     display_clear();
-    
-    *DISPLAY_C_MEM = 0xaf;  //turn display on
-    //display_push_ram_to_oled();
 
-    display_push_ram_to_oled();
+    /* Turn display on */
+    *DISPLAY_C_MEM = 0xaf;
 
-    *DISPLAY_C_MEM = 0xB2;
-    *DISPLAY_C_MEM = 0x00;
-    *DISPLAY_C_MEM = 0x1f;
-    for(int k = 0; k < 128; k++){
-        *DISPLAY_D_MEM = 0x00;
-    }
-
-    
-}
-
-void display_reset(){
-    *DISPLAY_C_MEM = 0xae;  //Display off
-
+    /* Enable interrupts after init */
+    sei();
 }
 
 

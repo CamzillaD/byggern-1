@@ -28,6 +28,10 @@ int main(){
 
     display_init();
 
+    while(1){
+        /* Nop */
+    }
+
     uart_init();
     fdevopen((int (*)(char, FILE*)) uart_send,(int (*)(FILE*)) uart_recv);
 
