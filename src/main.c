@@ -12,6 +12,7 @@
 static void system_init(){
     /* System clock prescaler of 1 */
     CLKPR = (1 << CLKPCE);
+    //CLKPR = (1 << CLKPS3);
 
     /* Enable external memory interface */
     MCUCR |= (1 << SRE);
@@ -28,9 +29,6 @@ int main(){
 
     display_init();
 
-    while(1){
-        /* Nop */
-    }
 
     uart_init();
     fdevopen((int (*)(char, FILE*)) uart_send,(int (*)(FILE*)) uart_recv);
@@ -45,20 +43,17 @@ int main(){
     HidSlider slider;
     HidButton button;
 
-    
-    //display_push_ram_to_oled();
-    
-    while(1){
-        
-        //loop++;
-        if(loop > 9){
-            loop = 0;
+    display_clear();
 
-            *disp_d = 0xa6;
-            _delay_ms(1000);
-            *disp_d = 0xa7;
-        }
-        
+    display_print(0, "Get some WAP:");
+    display_print(1, "That's some");
+    display_print(3, "Wet");
+    display_print(4, "Ass");
+    display_print(5, "Pussy <3");
+
+
+    while(1){
+    
         
         _delay_ms(5);
 
