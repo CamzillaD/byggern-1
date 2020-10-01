@@ -2,6 +2,7 @@
 #include "uart.h"
 #include "hid.h"
 #include "display.h"
+#include "can.h"
 
 #define F_CPU 4915200UL
 #include <util/delay.h>
@@ -45,15 +46,20 @@ int main(){
 
     display_clear();
 
-    display_print_heading("WAP Menu");
+    //display_print_heading("WAP Menu");
     display_print(2, "Wet");
     display_print(3, "Ass");
     display_print(4, "Pussy <3");
 
 
-    while(1){
+    can_init();
     
-        
+
+    while(1){
+        printf("0x%2x\n\r", can_test());
+
+    
+        /*
         _delay_ms(5);
 
         joystick = hid_joystick_read();
@@ -70,6 +76,8 @@ int main(){
             slider.left,
             slider.right
         );
+
+        */
     }
 
     return 0;
