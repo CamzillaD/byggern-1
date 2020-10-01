@@ -2,9 +2,19 @@
 #define HID_H
 #include <stdint.h>
 
+typedef enum {
+    HID_JOYSTICK_INVALID,
+    HID_JOYSTICK_CENTER,
+    HID_JOYSTICK_LEFT,
+    HID_JOYSTICK_RIGHT,
+    HID_JOYSTICK_UP,
+    HID_JOYSTICK_DOWN
+} HidJoystickPosition;
+
 typedef struct {
     uint8_t x;
     uint8_t y;
+    HidJoystickPosition position;
 } HidJoystick;
 
 typedef struct {

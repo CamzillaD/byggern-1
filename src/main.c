@@ -62,11 +62,12 @@ int main(){
         button = hid_button_read();
 
         printf(
-            "BL: %1d BR: %1d JX: %3d JY: %3d SL: %3d SR: %3d\n\r",
+            "BL: %1d BR: %1d JX: %3d JY: %3d JP: %1d SL: %3d SR: %3d\n\r",
             button.left,
             button.right,
             joystick.x,
             joystick.y,
+            joystick.position,
             slider.left,
             slider.right
         );
