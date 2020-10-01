@@ -7,9 +7,8 @@
 #define DISPLAY_D_MEM ((volatile uint8_t *)0x1200)
 
 #define DISPLAY_NUMBER_OF_PAGES 8
+#define DISPLAY_NUMBER_OF_SEGMENTS 128
 #define DISPLAY_FONT_WIDTH 5
-
-static uint8_t m_display_print_page;
 
 static const uint8_t PROGMEM m_font[95][5] = {
 	{0b00000000,0b00000000,0b00000000,0b00000000,0b00000000}, //
@@ -183,29 +182,85 @@ void display_init(){
 }
 
 void display_clear(){
-    for(uint8_t p = 0; p < 8; p++){
+    for(uint8_t p = 0; p < DISPLAY_NUMBER_OF_PAGES; p++){
         display_seek_page(p);
-        for(uint8_t i = 0; i < 128; i++){
+        for(uint8_t i = 0; i < DISPLAY_NUMBER_OF_SEGMENTS; i++){
             *DISPLAY_D_MEM = 0x00;
         }
     }
-
-    m_display_print_page = 0;
-    display_seek_page(m_display_print_page);
 }
 
 void display_print(uint8_t line, const char * string){
     display_seek_page(line);
+    uint8_t segment_cursor = 0;
         
     while(*string != '\0'){
         for(uint8_t i = 0; i < DISPLAY_FONT_WIDTH; i++){
             *DISPLAY_D_MEM = pgm_read_byte(m_font[*string - 0x20] + i);
+            segment_cursor++;
         }
 
         /* Font kerning 2 points */
         *DISPLAY_D_MEM = 0x00;
         *DISPLAY_D_MEM = 0x00;
+        segment_cursor += 2;
 
         string++;
+    }
+
+    while(segment_cursor < DISPLAY_NUMBER_OF_SEGMENTS){
+        *DISPLAY_D_MEM = 0x00;
+        segment_cursor++;
+    }
+}
+
+void display_print_heading(const char * string){
+    display_seek_page(0);
+    uint8_t segment_cursor = 0;
+
+    for(uint8_t i = 0; i < 4; i++){
+        *DISPLAY_D_MEM = 0x00;
+    }
+    *DISPLAY_D_MEM = 0x1c;
+    *DISPLAY_D_MEM = 0x3e;
+    *DISPLAY_D_MEM = 0x3e;
+    *DISPLAY_D_MEM = 0x1c;
+    *DISPLAY_D_MEM = 0x00;
+    for(uint8_t i = 0; i < 6; i++){
+        *DISPLAY_D_MEM = 0x08;
+    }
+    *DISPLAY_D_MEM = 0x00;
+    *DISPLAY_D_MEM = 0x00;
+
+    segment_cursor = 17;
+
+    while(*string != '\0'){
+        for(uint8_t i = 0; i < DISPLAY_FONT_WIDTH; i++){
+            *DISPLAY_D_MEM = pgm_read_byte(m_font[*string - 0x20] + i);
+            segment_cursor++;
+        }
+
+        /* Font kerning 2 points */
+        *DISPLAY_D_MEM = 0x00;
+        *DISPLAY_D_MEM = 0x00;
+        segment_cursor += 2;
+
+        string++;
+    }
+
+    while(segment_cursor < DISPLAY_NUMBER_OF_SEGMENTS - 19){
+        *DISPLAY_D_MEM = 0x00;
+    }
+
+    for(uint8_t i = 0; i < 6; i++){
+        *DISPLAY_D_MEM = 0x08;
+    }
+    *DISPLAY_D_MEM = 0x1c;
+    *DISPLAY_D_MEM = 0x3e;
+    *DISPLAY_D_MEM = 0x3e;
+    *DISPLAY_D_MEM = 0x1c;
+    *DISPLAY_D_MEM = 0x00;
+    for(uint8_t i = 0; i < 4; i++){
+        *DISPLAY_D_MEM = 0x00;
     }
 }

@@ -45,11 +45,10 @@ int main(){
 
     display_clear();
 
-    display_print(0, "Get some WAP:");
-    display_print(1, "That's some");
-    display_print(3, "Wet");
-    display_print(4, "Ass");
-    display_print(5, "Pussy <3");
+    display_print_heading("WAP Menu");
+    display_print(2, "Wet");
+    display_print(3, "Ass");
+    display_print(4, "Pussy <3");
 
 
     while(1){

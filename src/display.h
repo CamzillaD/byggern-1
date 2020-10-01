@@ -9,4 +9,6 @@ void display_clear();
 
 void display_print(uint8_t line, const char * string);
 
+void display_print_heading(const char * string);
+
 #endif
