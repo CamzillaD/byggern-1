@@ -6,9 +6,12 @@
 void can_init(){
     mcp_init();
 
-    /* Loop-back one-shot mode */
-    mcp_write(MCP_CANCTRL, 0x43);
-
+    uint8_t mcp_config
+        = MCP_CANCTRL_LOOPBACK
+        | MCP_CANCTRL_ONESHOT
+        | MCP_CANCTRL_PRESCALE_8
+        ;
+    mcp_write(MCP_CANCTRL, mcp_config);
 }
 
 uint8_t can_test(){
