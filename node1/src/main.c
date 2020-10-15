@@ -55,32 +55,30 @@ int main(){
 
     can_init();
     
-    CanFrame test;
-    uint8_t send_buffer[8] = {0xff, 0x31, 0x11, 0xa0, 0x0e, 0xad, 0xbe, 0xef};
-    test.id = 0x05;
-    test.size = 8;
-    test.buffer = send_buffer;
 
     CanFrame test_recv;
     uint8_t recv_buffer[8];
     test_recv.size = 8;
     test_recv.buffer = recv_buffer;
 
+    printf("Camilla eller whatever \n\r");
 
     while(1){
         //printf("0x%2x\n\r", can_test());
 
-        can_send(&test);
         //_delay_ms(5);
-        can_recv(&test_recv);
-        //printf("can_test: %x\t", can_test());
-        //printf("test_send: %x%x \t", test.buffer[0], test.buffer[1]);
-        //printf("test_recv: %x%x \n\r", test_recv.buffer[0], test.buffer[1]);
-        for(uint8_t i = 0; i < 8; i++){
+        if (can_recv(&test_recv)){
+            printf("id: %3d ", test_recv.id);
+            for(uint8_t i = 0; i < test_recv.size; i++){
             printf("%2x", test_recv.buffer[i]);
         }
         printf("\n\r");
-    
+        }
+
+        //printf("can_test: %x\t", can_test());
+        //printf("test_send: %x%x \t", test.buffer[0], test.buffer[1]);
+        //printf("test_recv: %x%x \n\r", test_recv.buffer[0], test.buffer[1]);
+        
         /*
         _delay_ms(5);
 

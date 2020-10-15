@@ -12,6 +12,7 @@ void mcp_init(){
     //reseter MCP
     uint8_t command = MCP_RESET;
     spi_shift(&command, 1);
+
 }
 
 uint8_t mcp_read(uint8_t address){

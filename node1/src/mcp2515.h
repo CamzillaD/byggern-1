@@ -18,6 +18,9 @@
 #define MCP_RXB0SIDL 0x62
 #define MCP_RXB0DLC  0x65
 #define MCP_RXB0DM   0x66
+#define MCP_CNF1     0x2A
+#define MCP_CNF2     0x29
+#define MCP_CNF3     0x28
 #define MCP_CANINTE  0x2B
 
 

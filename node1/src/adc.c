@@ -11,6 +11,7 @@ static uint8_t adc_busy(){
     return !(PINB & (1 << PB1));
 }
 
+
 ISR(TIMER2_COMP_vect){
     /* Strobe ~WR to start conversion */
     *ADC_MEM = 0x00;

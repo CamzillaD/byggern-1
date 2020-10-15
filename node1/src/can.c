@@ -2,12 +2,49 @@
 #include "mcp2515.h"
 #include <avr/interrupt.h>
 
+#include "uart.h"
+
+//static gjør denne modul-bundet, lenkern kan ikke lenke den fra noe annet sted
+static uint8_t recv_flag;
+static CanFrame recv_frame;
+static uint8_t recv_buffer[8];
+
+
+ISR(INT0_vect){
+
+    uart_send('s');
+    uart_send('\n');
+    uart_send('\r');
+    
+
+    recv_flag = 1;
+ 
+    recv_frame.id = (mcp_read(MCP_RXB0SIDH) << 3);
+    recv_frame.id |= (mcp_read(MCP_RXB0SIDL) >> 5);
+    
+    for (int i = 0; i < recv_frame.size; i++){
+        recv_frame.buffer[i] = mcp_read(MCP_RXB0DM + i);
+    }
+}
+
+
 void can_init(){
+    cli();
+    recv_frame.buffer = recv_buffer;
+
+    // INT0 pin input
+    DDRD &= ~(1 << PD2);
+
+    // Trigger INT0 on falling edge
+    MCUCR |= (1 << ISC01);
+
+    // Enable INT0
+    GICR |= (1 << INT0);
+
     mcp_init();
 
     uint8_t mcp_config
         = MCP_CANCTRL_NORMAL
-        | MCP_CANCTRL_ONESHOT
         | MCP_CANCTRL_PRESCALE_8
         | MCP_CANCTRL_CLKOUT
         ;
@@ -15,6 +52,16 @@ void can_init(){
 
     uint8_t mcp_rxb0_config = 0x60;
     mcp_write(MCP_RXB0CTRL, mcp_rxb0_config);
+
+    //setter bit timing
+    uint8_t mcp_cnf1 = 0x00 | 0x14;
+    mcp_write(MCP_CNF1, mcp_cnf1);
+    uint8_t mcp_cnf2 = 0x80 | 0x18 | 0x03;
+    mcp_write(MCP_CNF2, mcp_cnf2);
+    uint8_t mcp_cnf3 = 0x03;
+    mcp_write(MCP_CNF3, mcp_cnf3);
+
+    sei();
 }
 
 void can_send(const CanFrame * p_frame){
@@ -32,19 +79,23 @@ void can_send(const CanFrame * p_frame){
 }
 
 uint8_t can_recv(CanFrame * p_frame){
-
-    if (p_frame->size < mcp_read(MCP_RXB0DLC)){
-        return 1;
+    if (recv_flag == 0){
+        return 0;
     }
 
-    p_frame->id = (mcp_read(MCP_RXB0SIDH) << 3);
-    p_frame->id |= (mcp_read(MCP_RXB0SIDL) >> 5);
-    
-    for (int i=0; i< p_frame->size; i++){
-        p_frame->buffer[i] = mcp_read(MCP_RXB0DM + i);
+    cli();
+
+    p_frame->id = recv_frame.id;
+    p_frame->size = recv_frame.size;
+
+    for (int i = 0; i < p_frame->size; i++){
+        p_frame->buffer[i] = recv_frame.buffer[i];
     }
-    
-    return 0;
+    recv_flag = 0;
+
+    sei();
+
+    return 1;
 }
  
 uint8_t can_test(){
@@ -52,62 +103,4 @@ uint8_t can_test(){
 }
 
 
- /*
-    Do this first: implement can_recv and manage
-    to receive messages in loopback mode.
-
-    TODO: Place the MCP2515 in normal mode and call
-    this function a _couple_ of times, while checking
-    the CANH and CANL (high and low) lines for activity.
-
-    This will only work if the MCP2515 is in one-shot
-    mode, otherwise it will attempt a retransfer, which
-    will very quickly bring it into a failed state, since
-    we don't have any other nodes on the bus to acknowledge
-    our transmissions.
-
-    */
-
-/*
-    Suggestion for implementation:
-
-    You guys take in a pointer to a CAN frame, namely p_frame.
-    p_frame->size must be set to indicate how big p_frame->buffer
-    is, since this is not controlled by this function, but the
-    environment that called this function. This way we don't have
-    to do malloc on a microcontroller :)
-
-    You then follow the steps outlined in chapter 4.0 "Message Reception"
-    in the MCP2515 data sheet. If the received message has more data bytes
-    than p_frame->size, you must stop reception, and return 1 to indicate
-    that the function did not run as expected.
-    If p_frame->size is large enough to accomodate all the received bytes,
-    you simply copy over all the bytes you got, and return 0 to indicate
-    that the function ran successfully.
-
-    FAQ:
-    -> Why call the function "can_recv" and not "can_receive"?
-    Sadly, this is the naming convention that people have settled for in
-    other areas, so we follow the status quo here.
-
-    -> Why return 0 to indicate success, and not 1?
-    Oftentimes, a function can fail in many ways, but only succeed in one.
-    So, we reserve 0 to indicate "no errors", and we keep all the other
-    numbers for possible error codes.
-    You guys might have seen this when trying to execute commands on Linux,
-    or when you request web pages. The dreaded "404" is just one such
-    error code.
-
-    -> Why not just use malloc and be done with it?
-    Calls to malloc will incur huge penalties for us on a microcontroller,
-    so we'd rather not, unless we for some reason needed dynamic memory.
-    Even in those cases, we might actually be better off writing our own
-    implementation of a heap-like structure.
-
-    -> Do we have to follow the suggested implementation?
-    Of course not, you are free to do whatever you feel pertinent, I
-    will not be a nazi on this ;)
-
-    Happy coding you two!
-    */
 
