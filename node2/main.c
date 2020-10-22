@@ -5,6 +5,8 @@
 #include "can_controller.h"
 #include "can_interrupt.h"
 
+#include "timer.h"
+
 #include "sam.h"
 
 
@@ -52,12 +54,11 @@ int main()
     while (1)
     {
         /* code */
-        printf("%x \n\r", CAN0->CAN_SR);
-        REG_PIOA_SODR = (PIO_PA19) | (PIO_PA20);
-        delay(1000);
-        REG_PIOA_CODR = (PIO_PA19) | (PIO_PA20);
-        delay(1000);
-
+        //printf("%x \n\r", CAN0->CAN_SR);
+        //REG_PIOA_SODR = (PIO_PA19) | (PIO_PA20);
+        //delay(1);
+        //REG_PIOA_CODR = (PIO_PA19) | (PIO_PA20);
+        //delay(1);
+        printf("%8x \n\r", timer_read_cv());
     }
-
 }
