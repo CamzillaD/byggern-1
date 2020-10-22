@@ -11,20 +11,21 @@ static uint8_t recv_buffer[8];
 
 
 ISR(INT0_vect){
-
-    uart_send('s');
-    uart_send('\n');
-    uart_send('\r');
     
-
     recv_flag = 1;
  
     recv_frame.id = (mcp_read(MCP_RXB0SIDH) << 3);
     recv_frame.id |= (mcp_read(MCP_RXB0SIDL) >> 5);
+
+    recv_frame.size = mcp_read(MCP_RXB0DLC) & 0x0f;
+    
     
     for (int i = 0; i < recv_frame.size; i++){
         recv_frame.buffer[i] = mcp_read(MCP_RXB0DM + i);
     }
+
+    uint8_t mcp_canintf = 0x00;
+    mcp_write(MCP_CANINTF, mcp_canintf);
 }
 
 
@@ -60,6 +61,9 @@ void can_init(){
     //0x40 | 0x13
     uint8_t mcp_cnf1 = (0x43);
     mcp_write(MCP_CNF1, mcp_cnf1);
+
+    uint8_t mcp_caninte = 0x01;
+    mcp_write(MCP_CANINTE, mcp_caninte);
     
     
 

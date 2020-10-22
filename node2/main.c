@@ -36,11 +36,11 @@ int main()
     test.data[4] = 0x0e;
     test.data[5] = 0xad;
     test.data[6] = 0xad;
-    test.data[7] = 0xef;
-    test.id = 0x05;
-    test.data_length = 1;
+    //test.data[7] = 0x5f;
+    test.id = 0x09;
+    test.data_length = 7;
    
-    //can_send(&test,0);
+    can_send(&test,0);
     
 
 

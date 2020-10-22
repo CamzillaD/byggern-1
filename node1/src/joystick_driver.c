@@ -4,7 +4,9 @@
 
 //lage en driver som kan sende joystick position from node 1 to node 2
 
-void joystick_driver_send_pos( HidJoystickPosition pos){
+void joystick_driver_send_pos( HidJoystick pos){
 
-    
+
+
 }
+

@@ -22,6 +22,7 @@
 #define MCP_CNF2     0x29
 #define MCP_CNF3     0x28
 #define MCP_CANINTE  0x2B
+#define MCP_CANINTF  0x2C
 
 
 /* Register Values */

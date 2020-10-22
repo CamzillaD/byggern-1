@@ -4,6 +4,7 @@
 #include "display.h"
 #include "can.h"
 #include "menu.h"
+#include "frame_format.h"
 
 #define F_CPU 4915200UL
 #include <util/delay.h>
@@ -70,15 +71,19 @@ int main(){
     printf("Camilla eller whatever \n\r");
 
     can_send(&test_send);
-
+    HidJoystick stick = hid_joystick_read();
+    frame_joystick_send(stick);
+    
     while(1){
         //printf("0x%2x\n\r", can_test());
+
+        
 
         //_delay_ms(5);
         if (can_recv(&test_recv)){
             printf("id: %3d ", test_recv.id);
             for(uint8_t i = 0; i < test_recv.size; i++){
-            printf("%2x", test_recv.buffer[i]);
+            printf("%3x", test_recv.buffer[i]);
         }
         printf("\n\r");
         }
