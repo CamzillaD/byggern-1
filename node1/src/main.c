@@ -61,7 +61,15 @@ int main(){
     test_recv.size = 8;
     test_recv.buffer = recv_buffer;
 
+    CanFrame test_send;
+    uint8_t send_buffer[8] = {0xff, 0xee, 0x00, 0x00, 0x00, 0x00, 0x00, 0x22};
+    test_send.size = 8;
+    test_send.buffer = send_buffer;
+    test_send.id = 2;
+
     printf("Camilla eller whatever \n\r");
+
+    can_send(&test_send);
 
     while(1){
         //printf("0x%2x\n\r", can_test());

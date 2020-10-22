@@ -3,6 +3,7 @@
 #include "uart_and_printf/uart.h"
 #include "uart_and_printf/printf-stdarg.h"
 #include "can_controller.h"
+#include "can_interrupt.h"
 
 #include "sam.h"
 
@@ -23,8 +24,8 @@ int main()
 
     //CAN_BR = 0x00069333
     configure_uart();
-
-    can_init(0x00690333,1,1 );
+    //0x007f1633
+    can_init(0x00290561, 1, 2);
     printf("Mye dyrere enn studentvin\n\r");
 
     CAN_MESSAGE test;
@@ -39,7 +40,8 @@ int main()
     test.id = 0x05;
     test.data_length = 1;
    
-    can_send(&test,0);
+    //can_send(&test,0);
+    
 
 
 
@@ -47,12 +49,10 @@ int main()
     REG_PIOA_PER = (PIO_PA19) | (PIO_PA20);
     REG_PIOA_OER = (PIO_PA19) | (PIO_PA20);
 
-
-
     while (1)
     {
         /* code */
-        
+        printf("%x \n\r", CAN0->CAN_SR);
         REG_PIOA_SODR = (PIO_PA19) | (PIO_PA20);
         delay(1000);
         REG_PIOA_CODR = (PIO_PA19) | (PIO_PA20);

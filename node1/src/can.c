@@ -44,6 +44,26 @@ void can_init(){
     mcp_init();
 
     uint8_t mcp_config
+        = MCP_CANCTRL_CONFIG
+        | MCP_CANCTRL_PRESCALE_8
+        | MCP_CANCTRL_CLKOUT
+        ;
+    mcp_write(MCP_CANCTRL, mcp_config);
+
+    //setter bit timing
+    //0x03
+    uint8_t mcp_cnf3 = (0x01);
+    mcp_write(MCP_CNF3, mcp_cnf3);
+    // 0x80 | 0x18 | 0x06
+    uint8_t mcp_cnf2 = (0xb5);
+    mcp_write(MCP_CNF2, mcp_cnf2);
+    //0x40 | 0x13
+    uint8_t mcp_cnf1 = (0x43);
+    mcp_write(MCP_CNF1, mcp_cnf1);
+    
+    
+
+    mcp_config
         = MCP_CANCTRL_NORMAL
         | MCP_CANCTRL_PRESCALE_8
         | MCP_CANCTRL_CLKOUT
@@ -53,13 +73,7 @@ void can_init(){
     uint8_t mcp_rxb0_config = 0x60;
     mcp_write(MCP_RXB0CTRL, mcp_rxb0_config);
 
-    //setter bit timing
-    uint8_t mcp_cnf1 = 0x00 | 0x14;
-    mcp_write(MCP_CNF1, mcp_cnf1);
-    uint8_t mcp_cnf2 = 0x80 | 0x18 | 0x03;
-    mcp_write(MCP_CNF2, mcp_cnf2);
-    uint8_t mcp_cnf3 = 0x03;
-    mcp_write(MCP_CNF3, mcp_cnf3);
+
 
     sei();
 }

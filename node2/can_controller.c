@@ -12,7 +12,7 @@
 
 #include "sam.h"
 
-#include "../uart_and_printf/printf-stdarg.h"
+#include "uart_and_printf/printf-stdarg.h"
 
 
 /**
@@ -50,6 +50,7 @@ uint8_t can_init(uint32_t can_br, uint8_t num_tx_mb, uint8_t num_rx_mb)
 	{
 		return 1; //Too many mailboxes is configured
 	}
+
 
 	uint32_t ul_status; 
 	
