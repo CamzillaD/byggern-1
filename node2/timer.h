@@ -5,11 +5,10 @@
 #include "sam.h"
 
 
-uint8_t timer_init();
+uint8_t timer_pwm_init();
 
-uint8_t timer_enable();
+uint8_t timer_set_duty_cycle(double percentage); 
 
-uint8_t timer_disable();
 
 uint32_t timer_read_cv();
 

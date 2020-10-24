@@ -6,6 +6,7 @@
 #include "can_interrupt.h"
 
 #include "timer.h"
+#include "servo.h"
 
 #include "sam.h"
 
@@ -43,6 +44,8 @@ int main()
     test.data_length = 7;
    
     can_send(&test,0);
+    timer_pwm_init();
+    timer_set_duty_cycle(0.5);
     
 
 
@@ -59,6 +62,7 @@ int main()
         //delay(1);
         //REG_PIOA_CODR = (PIO_PA19) | (PIO_PA20);
         //delay(1);
-        printf("%8x \n\r", timer_read_cv());
+        //printf("%4x \n\r", timer_read_cv());
+
     }
 }

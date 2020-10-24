@@ -77,7 +77,7 @@ int main(){
     while(1){
         //printf("0x%2x\n\r", can_test());
 
-        
+        frame_joystick_send(hid_joystick_read());
 
         //_delay_ms(5);
         if (can_recv(&test_recv)){
