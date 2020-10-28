@@ -5,20 +5,10 @@
 
 void display_init();
 
-void display_reset();
-
-void display_home();
-
-void display_go_to_line(uint8_t line);
-
-void display_go_to_column(uint8_t column);
-
-void display_clear_line(uint8_t line);
-
-void display_pos(uint8_t row, uint8_t column);
-
-void display_print(uint8_t* chr);
-
 void display_clear();
+
+void display_print(uint8_t line, const char * string);
+
+void display_print_heading(const char * string);
 
 #endif
