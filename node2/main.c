@@ -4,9 +4,11 @@
 #include "uart_and_printf/printf-stdarg.h"
 #include "can_controller.h"
 #include "can_interrupt.h"
+#include "play_ping_pong.h"
 
 #include "timer.h"
 #include "servo.h"
+#include "ir.h"
 
 #include "sam.h"
 
@@ -22,6 +24,7 @@ void delay(uint32_t ms){
 int main()
 {
     SystemInit();
+    play_ping_pong_init();
 
     WDT->WDT_MR = WDT_MR_WDDIS; //Disable Watchdog Timer
 
@@ -46,16 +49,35 @@ int main()
     can_send(&test,0);
     timer_pwm_init();
     timer_set_duty_cycle(0.5);
+
+    CAN_MESSAGE test_broken;
+    test.data[0] = 0x00;
+    test.data[1] = 0x00;
+    test.id = 0x09;
+    test.data_length = 2;
     
-
-
-
+    
     // LED_init
     REG_PIOA_PER = (PIO_PA19) | (PIO_PA20);
     REG_PIOA_OER = (PIO_PA19) | (PIO_PA20);
 
+    ir_adc_init();
+
     while (1)
     {
+
+        //uint32_t score = play_ping_pong_read_score();
+        //printf("%d.%2d s\n\r", score/4,25* (score % 4));
+        if(ir_beam_broken()){
+            test_broken.data[0] = ir_beam_broken();
+            test_broken.data[1] = play_ping_pong_read_score();
+            can_send(&test_broken, 0);
+        }
+
+        ADC->ADC_CR = ADC_CR_START;
+        while (!(ADC->ADC_ISR & ADC_ISR_EOC0)){}
+        printf("%d \n\r", ir_beam_broken());
+     
         /* code */
         //printf("%x \n\r", CAN0->CAN_SR);
         //REG_PIOA_SODR = (PIO_PA19) | (PIO_PA20);

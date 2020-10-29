@@ -42,16 +42,7 @@ int main(){
 
     uint16_t loop = 0;
 
-    HidJoystick joystick;
-    HidSlider slider;
-    HidButton button;
-
     display_clear();
-
-    //display_print_heading("WAP Menu");
-    display_print(2, "Gi");
-    display_print(3, "Oss");
-    display_print(4, "Godkjent? <3");
 
 
     can_init();
@@ -73,11 +64,51 @@ int main(){
     can_send(&test_send);
     HidJoystick stick = hid_joystick_read();
     frame_joystick_send(stick);
-    
-    while(1){
-        //printf("0x%2x\n\r", can_test());
 
-        frame_joystick_send(hid_joystick_read());
+ 
+    const MenuItem * p_menu_item = menu_root_node();
+    uint8_t menu_selected_item = 0;
+   
+    HidJoystick joystick;
+    HidJoystickPosition joystick_last_position = HID_JOYSTICK_CENTER;
+
+    while(1){
+        menu_print(p_menu_item, menu_selected_item);
+
+        joystick = hid_joystick_read();
+
+        if(joystick.position == HID_JOYSTICK_DOWN
+            && joystick_last_position != HID_JOYSTICK_DOWN
+            && menu_selected_item < 2
+        ){
+            menu_selected_item++;
+        }
+        if(joystick.position == HID_JOYSTICK_UP
+            && joystick_last_position != HID_JOYSTICK_UP
+            && menu_selected_item > 0
+        ){
+            menu_selected_item--;
+        }
+
+        if(joystick.position == HID_JOYSTICK_RIGHT){
+            printf("Menu item chosen: %d\n\r", menu_selected_item);
+        }
+
+        joystick_last_position = joystick.position;
+
+        //KAN IKKE LESE HVIS LINJEN ER BRUTT FRA START
+        if(can_recv(&test_recv)){
+            display_print(7, "Broken", 0);
+            printf("%d\n\r", (uint8_t)test_recv.buffer[1]);
+        }
+        else {
+            display_print(7, "", 0);
+        }
+
+        //printf("0x%2x\n\r", can_test());
+        
+
+        /*frame_joystick_send(hid_joystick_read());
 
         //_delay_ms(5);
         if (can_recv(&test_recv)){
@@ -87,7 +118,7 @@ int main(){
         }
         printf("\n\r");
         }
-
+*/
         //printf("can_test: %x\t", can_test());
         //printf("test_send: %x%x \t", test.buffer[0], test.buffer[1]);
         //printf("test_recv: %x%x \n\r", test_recv.buffer[0], test.buffer[1]);

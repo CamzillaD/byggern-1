@@ -190,9 +190,24 @@ void display_clear(){
     }
 }
 
-void display_print(uint8_t line, const char * string){
+void display_print(uint8_t line, const char * string, uint8_t arrow){
     display_seek_page(line);
     uint8_t segment_cursor = 0;
+
+    if(arrow){
+        for(uint8_t i = 0; i < DISPLAY_FONT_WIDTH; i++){
+            *DISPLAY_D_MEM = pgm_read_byte(m_font['-' - 0x20] + i);
+            segment_cursor++;
+        }
+        for(uint8_t i = 0; i < DISPLAY_FONT_WIDTH; i++){
+            *DISPLAY_D_MEM = pgm_read_byte(m_font['>' - 0x20] + i);
+            segment_cursor++;
+        }
+        for(uint8_t i = 0; i < 4; i++){
+            *DISPLAY_D_MEM = 0x00;
+            segment_cursor++;
+        }
+    }
         
     while(*string != '\0'){
         for(uint8_t i = 0; i < DISPLAY_FONT_WIDTH; i++){

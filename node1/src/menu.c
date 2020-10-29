@@ -8,63 +8,42 @@ static void menu_no_action(){
 
 static MenuItem m_menu_items[] = {
     {
-        "Top Node",
+        "Main Menu",
         NULL,
         m_menu_items + 1,
         NULL,
         menu_no_action
     },
     {
-        "Wet",
+        "Play Game",
         m_menu_items + 0,
-        m_menu_items + 4,
+        NULL,
         m_menu_items + 2,
         menu_no_action
     },
     {
-        "Ass",
+        "Reset scores",
         m_menu_items + 0,
         NULL,
         m_menu_items + 3,
         menu_no_action
     },
     {
-        "Pussy",
+        "Calibrate",
         m_menu_items + 0,
-        m_menu_items + 6,
+        m_menu_items + 4,
         NULL,
         menu_no_action
     },
     {
-        "Big D 1.1",
-        m_menu_items + 1,
+        "Joystick",
+        m_menu_items + 3,
         NULL,
         m_menu_items + 5,
         menu_no_action
     },
     {
-        "WAP 1.2",
-        m_menu_items + 1,
-        NULL,
-        NULL,
-        menu_no_action
-    },
-    {
-        "Make that 3.1",
-        m_menu_items + 3,
-        NULL,
-        m_menu_items + 7,
-        menu_no_action
-    },
-        {
-        "Pullout game 3.2",
-        m_menu_items + 3,
-        NULL,
-        m_menu_items + 8,
-        menu_no_action
-    },
-        {
-        "Weeeaak! 3.3",
+        "Slider",
         m_menu_items + 3,
         NULL,
         NULL,
@@ -95,11 +74,15 @@ uint16_t menu_children(const MenuItem * p_node, MenuItem ** pp_child){
 }
 
 void menu_print(const MenuItem * p_node, uint8_t selected_level){
-    display_print_heading(p_node->title);
+    display_print(0,p_node->title, 0);
 
     MenuItem * p_child;
     uint16_t children = menu_children(p_node, &p_child);
 
+    display_print(1, "------------------", 0);
     for(uint16_t c = 0; c < children; c++){
+        uint8_t print_arrow = (c == selected_level);
+        display_print(c + 2, p_child->title, print_arrow);
+        p_child++;
     }
 }
