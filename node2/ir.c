@@ -9,8 +9,10 @@ uint32_t ir_adc_init(){
     ADC->ADC_COR = ADC_CHER_CH0;
     ADC->ADC_IER=ADC_IER_COMPE; // comparison eeb\\vent interrupt trigger
 
-    PIOA->PIO_PER = PIO_PDR_P2; //hvorfor må vi disable pin p2??? why?? wtf??
-}
+    PIOA->PIO_PER = PIO_PDR_P2; //enable pin 2
 
 uint32_t ir_read_signal(){
     return ADC->ADC_CDR[0];
+}
+
+//test
