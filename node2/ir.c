@@ -14,5 +14,3 @@ uint32_t ir_adc_init(){
 
 uint32_t ir_read_signal(){
     return ADC->ADC_CDR[0];
-
-}
