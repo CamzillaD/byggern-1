@@ -1,13 +1,14 @@
 #include <avr/io.h>
 #include "uart.h"
-#include "hid.h"
-#include "can.h"
-#include "frame_format.h"
+#include "mcp2518fd.h"
+#include "network.h"
+#include "adc.h"
+#include "joystick.h"
+#include "touch_button.h"
 
-#define F_CPU 4915200UL
+#define F_CPU 16000000ul
 #include <util/delay.h>
 
-#include <stdio.h>
 #include <avr/interrupt.h>
 
 static void system_init(){
@@ -22,57 +23,44 @@ static void system_init(){
     SFIOR |= (1 << XMM2);
 }
 
+
+void print_8bit(uint8_t value){
+    uart_send(value / 100 + '0');
+    value %= 100;
+
+    uart_send(value / 10 + '0');
+    value %= 10;
+
+    uart_send(value + '0');
+}
+
 int main(){
     system_init();
 
-    hid_init();
+    adc_init();
+
     sei();
 
-    /* display_init(); */
-
-
     uart_init();
+    mcp2518fd_init();
 
+    network_init();
+
+    Joystick left, right;
+
+    touch_button_init();
 
     while(1){
-        uart_send('h');
-        uart_send('e');
-        uart_send('l');
-        uart_send('l');
-        uart_send('o');
+        network_indicate(NETWORK_STATE_CONNECTED);
+
+        uart_send(touch_button_read(TOUCH_BUTTON_LEFT) + '0');
+        uart_send(' ');
+        uart_send(touch_button_read(TOUCH_BUTTON_RIGHT) + '0');
+
         uart_send('\n');
         uart_send('\r');
-    }
 
-
-    HidJoystick joystick;
-    HidSlider slider;
-    HidButton button;
-
-
-
-    can_init();
-
-
-    CanFrame test_recv;
-    uint8_t recv_buffer[8];
-    test_recv.size = 8;
-    test_recv.buffer = recv_buffer;
-
-    CanFrame test_send;
-    uint8_t send_buffer[8] = {0xff, 0xee, 0x00, 0x00, 0x00, 0x00, 0x00, 0x22};
-    test_send.size = 8;
-    test_send.buffer = send_buffer;
-    test_send.id = 2;
-
-    can_send(&test_send);
-    HidJoystick stick = hid_joystick_read();
-    frame_joystick_send(stick);
-
-    while(1){
-
-        frame_joystick_send(hid_joystick_read());
-
+        network_indicate(NETWORK_STATE_DISCONNECTED);
     }
 
     return 0;

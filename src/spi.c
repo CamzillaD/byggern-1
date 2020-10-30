@@ -13,32 +13,26 @@ void spi_init(){
     /* MISO */
     DDRB &= ~(1 << PB6);
 
-    /* Slave Select, Serial Clock, MOSI */
+    /* Slave Select, MOSI, Serial Clock */
     DDRB |= (1 << PB4) | (1 << PB5) | (1 << PB7);
     PORTB |= (1 << PB4);
 
     /* Enable SPI, Master mode */
     SPCR |= (1 << SPE) | (1 << MSTR);
 
-    /* Slow down SCK */
+    /* 128 clock prescaler on SCK */
     SPCR |= (1 << SPR0) | (1 << SPR1);
 }
 
 
-//spi_send and recieve
 void spi_shift(uint8_t * buffer, uint16_t size){
     spi_slave_select();
 
-    
-    for(int i = 0; i < size; i++){
-
-        //putter hver byte fra bufferen inn i SPI-Data register
+    for(uint16_t i = 0; i < size; i++){
         SPDR = buffer[i];
 
+        while(!(SPSR & (1 << SPIF)));
 
-        while(!(SPSR & (1 << SPIF))){ 
-
-        }
         buffer[i] = SPDR;
     }
 
