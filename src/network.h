@@ -2,15 +2,11 @@
 #define NETWORK_H
 #include <stdint.h>
 
-typedef enum {
-    NETWORK_STATE_CONNECTED,
-    NETWORK_STATE_DISCONNECTED
-} NetworkState;
-
-void network_init();
+typedef struct {
+    uint8_t key;
+    uint8_t value;
+} NetworkMessage;
 
 uint8_t network_message_read(NetworkMessage * p_message);
-
-void network_indicate(NetworkState state);
 
 #endif

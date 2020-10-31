@@ -3,8 +3,10 @@
 #include "mcp2518fd.h"
 #include "network.h"
 #include "adc.h"
+#include "spi.h"
 #include "joystick.h"
 #include "touch_button.h"
+#include "connection_indicator.h"
 
 #define F_CPU 16000000ul
 #include <util/delay.h>
@@ -14,7 +16,6 @@
 static void system_init(){
     /* System clock prescaler of 1 */
     CLKPR = (1 << CLKPCE);
-    //CLKPR = (1 << CLKPS3);
 
     /* Enable external memory interface */
     MCUCR |= (1 << SRE);
@@ -24,16 +25,6 @@ static void system_init(){
 }
 
 
-void print_8bit(uint8_t value){
-    uart_send(value / 100 + '0');
-    value %= 100;
-
-    uart_send(value / 10 + '0');
-    value %= 10;
-
-    uart_send(value + '0');
-}
-
 int main(){
     system_init();
 
@@ -42,9 +33,10 @@ int main(){
     sei();
 
     uart_init();
+    spi_init();
     mcp2518fd_init();
 
-    network_init();
+    connection_indicator_init();
 
     Joystick left, right;
 
@@ -54,13 +46,26 @@ int main(){
 
     while(1){
         if(network_message_read(&command)){
-            if(command.key == 'a'){
-                if(command.value = 'a'){
-                    network_indicate(NETWORK_STATE_CONNECTED);
-                }
-                else if(command.value = 'b'){
-                    network_indicate(NETWORK_STATE_DISCONNECTED);
-                }
+            uart_send('K');
+            uart_send(':');
+            uart_send(' ');
+            uart_send(command.key);
+
+            uart_send(' ');
+
+            uart_send('V');
+            uart_send(':');
+            uart_send(' ');
+            uart_send(command.value);
+
+            uart_send('\n');
+            uart_send('\r');
+
+            if(command.key == 'A'){
+                connection_indicator_turn_on();
+            }
+            if(command.key == 'B'){
+                connection_indicator_turn_off();
             }
         }
     }

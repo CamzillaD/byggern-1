@@ -3,89 +3,62 @@
 #include "uart.h"
 #include <avr/interrupt.h>
 
-#define NETWORK_BUFFER_SIZE 32
-#define NETWORK_STX 0x02
-#define NETWORK_ETX 0x03
+#define NETWORK_BUFFER_SIZE 16
+#define NETWORK_FLAG 0x02
 
 typedef enum {
-    NETWORK_READ_STX,
-    NETWORK_READ_LEN,
-    NETWORK_READ_PAYLOAD,
-    NETWORK_READ_SUM,
-    NETWORK_READ_ETX
-} NetworkReadState;
+    NETWORK_AWAIT_FLAG,
+    NETWORK_AWAIT_KEY,
+    NETWORK_AWAIT_VALUE,
+    NETWORK_AWAIT_SUM,
+} NetworkAwait;
 
-static NetworkReadState m_read_state = NETWORK_READ_STX;
-static uint8_t m_read_buffer[NETWORK_BUFFER_SIZE];
-static uint8_t m_read_buffer_index = 0;
+static NetworkAwait m_await = NETWORK_AWAIT_FLAG;
+static NetworkMessage m_buffer[NETWORK_BUFFER_SIZE];
+static uint8_t m_write_head = 0;
+static uint8_t m_read_head = 0;
 
-static uint8_t network_sum_buffer(){
-    uint8_t sum = 0;
-    for(uint8_t i = 0; i < m_read_buffer_index; i++){
-        sum += m_read_buffer[i];
-    }
-    return sum;
-}
+#define MESSAGE_SUM(x) ((m_buffer[x].key + m_buffer[x].value))
 
 ISR(USART0_RXC_vect){
     uint8_t byte = uart_recv();
 
-    switch(m_read_state){
-        case NETWORK_READ_STX:
-            if(byte == NETWORK_STX){
-                m_read_state = NETWORK_READ_LEN;
+    switch(m_await){
+        case NETWORK_AWAIT_FLAG:
+            if(byte == NETWORK_FLAG){
+                m_await = NETWORK_AWAIT_KEY;
             }
             break;
 
-        case NETWORK_READ_LEN:
-            m_read_buffer[0] = byte;
-            m_read_buffer_index = 1;
-            m_read_state = NETWORK_READ_PAYLOAD;
+        case NETWORK_AWAIT_KEY:
+            m_buffer[m_write_head].key = byte;
+            m_await = NETWORK_AWAIT_VALUE;
             break;
 
-        case NETWORK_READ_PAYLOAD:
-            m_read_buffer[m_read_buffer_index++] = byte;
-            if(m_read_buffer_index > m_read_buffer[0]){
-                m_read_state = NETWORK_READ_SUM;
-            }
+        case NETWORK_AWAIT_VALUE:
+            m_buffer[m_write_head].value = byte;
+            m_await = NETWORK_AWAIT_SUM;
             break;
 
-        case NETWORK_READ_SUM:
-            if(network_sum_buffer() == byte){
-                m_read_state = NETWORK_READ_ETX;
+        case NETWORK_AWAIT_SUM:
+            if(MESSAGE_SUM(m_write_head) == byte){
+                m_write_head++;
+                m_write_head %= NETWORK_BUFFER_SIZE;
             }
-            else{
-                m_read_state = NETWORK_READ_STX;
-            }
-            break;
-
-        case NETWORK_READ_ETX:
-
-            m_read_state = NETWORK_READ_STX;
+            m_await = NETWORK_AWAIT_FLAG;
             break;
     }
 }
 
-void network_init(){
-    /* Enable MCP2518FD GPIO1 (Disable ~INT1) */
-    mcp2518fd_write(MCP_SFR_IOCON(3), 0x02);
+uint8_t network_message_read(NetworkMessage * p_message){
+    if(m_read_head == m_write_head){
+        return 0;
+    }
 
-    /* Use MCP2518FD GPIO1 as output */
-    mcp2518fd_write(MCP_SFR_IOCON(0), 0x00);
-}
+    *p_message = m_buffer[m_read_head];
 
-uint8_t network_message_read(){
+    m_read_head++;
+    m_read_head %= NETWORK_BUFFER_SIZE;
+
     return 1;
-}
-
-void network_indicate(NetworkState state){
-    switch(state){
-        case NETWORK_STATE_CONNECTED:
-            mcp2518fd_write(MCP_SFR_IOCON(1), 0x00);
-            break;
-
-        case NETWORK_STATE_DISCONNECTED:
-            mcp2518fd_write(MCP_SFR_IOCON(1), 0x02);
-            break;
-    }
 }
