@@ -50,17 +50,19 @@ int main(){
 
     touch_button_init();
 
+    NetworkMessage command;
+
     while(1){
-        network_indicate(NETWORK_STATE_CONNECTED);
-
-        uart_send(touch_button_read(TOUCH_BUTTON_LEFT) + '0');
-        uart_send(' ');
-        uart_send(touch_button_read(TOUCH_BUTTON_RIGHT) + '0');
-
-        uart_send('\n');
-        uart_send('\r');
-
-        network_indicate(NETWORK_STATE_DISCONNECTED);
+        if(network_message_read(&command)){
+            if(command.key == 'a'){
+                if(command.value = 'a'){
+                    network_indicate(NETWORK_STATE_CONNECTED);
+                }
+                else if(command.value = 'b'){
+                    network_indicate(NETWORK_STATE_DISCONNECTED);
+                }
+            }
+        }
     }
 
     return 0;
