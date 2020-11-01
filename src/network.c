@@ -8,17 +8,34 @@
 
 typedef enum {
     NETWORK_AWAIT_FLAG,
-    NETWORK_AWAIT_KEY,
+    NETWORK_AWAIT_EVENT,
     NETWORK_AWAIT_VALUE,
     NETWORK_AWAIT_SUM,
 } NetworkAwait;
 
 static NetworkAwait m_await = NETWORK_AWAIT_FLAG;
-static NetworkMessage m_buffer[NETWORK_BUFFER_SIZE];
-static uint8_t m_write_head = 0;
-static uint8_t m_read_head = 0;
+static uint8_t m_read_event;
+static uint8_t m_read_value;
 
-#define MESSAGE_SUM(x) ((m_buffer[x].key + m_buffer[x].value))
+void static network_write(uint8_t event, uint8_t value){
+    uart_send(NETWORK_FLAG);
+    uart_send(event);
+    uart_send(value);
+    uart_send(event + value);
+}
+
+void static network_enact(){
+    switch(m_read_event){
+        case NETWORK_EVENT_INDICATOR:
+            if(m_read_value){
+                connection_indicator_turn_on();
+            }
+            else{
+                connection_indicator_turn_off();
+            }
+            break;
+    }
+}
 
 ISR(USART0_RXC_vect){
     uint8_t byte = uart_recv();
@@ -26,39 +43,39 @@ ISR(USART0_RXC_vect){
     switch(m_await){
         case NETWORK_AWAIT_FLAG:
             if(byte == NETWORK_FLAG){
-                m_await = NETWORK_AWAIT_KEY;
+                m_await = NETWORK_AWAIT_EVENT;
             }
             break;
 
-        case NETWORK_AWAIT_KEY:
-            m_buffer[m_write_head].key = byte;
+        case NETWORK_AWAIT_EVENT:
+            m_read_event = byte;
             m_await = NETWORK_AWAIT_VALUE;
             break;
 
         case NETWORK_AWAIT_VALUE:
-            m_buffer[m_write_head].value = byte;
+            m_read_value = byte;
             m_await = NETWORK_AWAIT_SUM;
             break;
 
         case NETWORK_AWAIT_SUM:
-            if(MESSAGE_SUM(m_write_head) == byte){
-                m_write_head++;
-                m_write_head %= NETWORK_BUFFER_SIZE;
+            if(m_read_event + m_read_value == byte){
+                network_enact();
             }
             m_await = NETWORK_AWAIT_FLAG;
             break;
     }
 }
 
-uint8_t network_message_read(NetworkMessage * p_message){
-    if(m_read_head == m_write_head){
-        return 0;
+void network_write_joystick(Joystick * p_left, Joystick * p_right){
+    network_write(NETWORK_EVENT_JOYSTICK_LH, p_left->x);
+    network_write(NETWORK_EVENT_JOYSTICK_LV, p_left->y);
+    if(p_left->position_changed){
+        network_write(NETWORK_EVENT_JOYSTICK_LP, p_left->position);
     }
 
-    *p_message = m_buffer[m_read_head];
-
-    m_read_head++;
-    m_read_head %= NETWORK_BUFFER_SIZE;
-
-    return 1;
+    network_write(NETWORK_EVENT_JOYSTICK_RH, p_right->x);
+    network_write(NETWORK_EVENT_JOYSTICK_RV, p_right->y);
+    if(p_right->position_changed){
+        network_write(NETWORK_EVENT_JOYSTICK_RP, p_right->position);
+    }
 }

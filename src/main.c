@@ -42,32 +42,12 @@ int main(){
 
     touch_button_init();
 
-    NetworkMessage command;
+    connection_indicator_turn_off();
 
     while(1){
-        if(network_message_read(&command)){
-            uart_send('K');
-            uart_send(':');
-            uart_send(' ');
-            uart_send(command.key);
+        joystick_read(&left, &right);
 
-            uart_send(' ');
-
-            uart_send('V');
-            uart_send(':');
-            uart_send(' ');
-            uart_send(command.value);
-
-            uart_send('\n');
-            uart_send('\r');
-
-            if(command.key == 'A'){
-                connection_indicator_turn_on();
-            }
-            if(command.key == 'B'){
-                connection_indicator_turn_off();
-            }
-        }
+        network_write_joystick(&left, &right);
     }
 
     return 0;
