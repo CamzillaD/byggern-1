@@ -88,13 +88,16 @@ defmodule Slip.Link do
 
   # Messages from slave to host
 
-  def broadcast({event, value}) do
+  defp broadcast({event, value}) do
     message = case event do
       @event_joystick_lh ->
         {:joystick_lh, value}
 
       @event_joystick_lv ->
         {:joystick_lv, value}
+
+      @event_joystick_lp ->
+        {:joystick_lp, joystick_position(value)}
 
 
 
@@ -104,6 +107,9 @@ defmodule Slip.Link do
       @event_joystick_rv ->
         {:joystick_rv, value}
 
+      @event_joystick_rp ->
+        {:joystick_rp, joystick_position(value)}
+
       _ ->
         :unknown
     end
@@ -111,9 +117,16 @@ defmodule Slip.Link do
     Phoenix.PubSub.broadcast Slip.PubSub, "slip", message
   end
 
-  def broadcast(_) do
+  defp broadcast(_) do
     Phoenix.PubSub.broadcast Slip.PubSub, "slip", :unknown
   end
+
+  defp joystick_position(1), do: :center
+  defp joystick_position(2), do: :left
+  defp joystick_position(3), do: :right
+  defp joystick_position(4), do: :up
+  defp joystick_position(5), do: :down
+  defp joystick_position(_), do: :invalid
 
   # Messages from host to slave
 

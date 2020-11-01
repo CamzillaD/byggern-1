@@ -1,76 +1,46 @@
-<div style="display: flex; justify-content: center;">
-  <%= if @indicator_on do %>
-    <i class="fas fa-lightbulb"
-       style="font-size: 6em; margin-top: 30px; color: #e9c46a;
-              cursor: pointer;
-              transition: color 0.5s ease;"
-       phx-click="toggle-light">
-    </i>
-  <% else %>
-    <i class="fas fa-lightbulb"
-       style="font-size: 6em; margin-top: 30px; color: #264653;
-              cursor: pointer;
-              transition: color 0.5s ease;"
-       phx-click="toggle-light">
-    </i>
-  <% end %>
-</div>
+<h3>Unhandled messages: <%= @unhandled %></h3>
+<button phx-click="reset">Reset unhandled counter</button>
 
-<section class="joystick-row">
-  <div class="joystick-base">
-    <div class="joystick-head joystick-left"></div>
-    <div class="joystick-name">
-      Left
-    </div>
+<section class="menu">
+  <div class="menu-column">
+    <%= for item <- @menu do %>
+      <%= if item.selected do %>
+        <h1 class="menu-entry active"><%= item.title %></h1>
+      <% else %>
+        <h1 class="menu-entry"><%= item.title %></h1>
+      <% end %>
+    <% end %>
   </div>
 
-  <div class="joystick-base">
-    <div class="joystick-head joystick-right"></div>
-    <div class="joystick-name">
-      Right
-    </div>
+  <div class="menu-column">
   </div>
 </section>
 
+
+
 <style>
-.joystick-row {
+.menu {
+  width: 100%;
   display: flex;
   flex-direction: row;
-  justify-content: space-around;
+  justify-content: space-between;
 }
 
-.joystick-base {
-  width: 200px;
-  height: 200px;
-  border: 2px dashed #808080;
-  position: relative;
-  border-radius: 950302px;
+.menu-column {
+  width: 48%;
+  border: 1px solid black;
 }
 
-.joystick-head {
-  width: 50px;
-  height: 50px;
-  border: 3px solid #2a9d8f;
-  position: absolute;
-  border-radius: 950302px;
-}
-
-.joystick-name {
-  text-align: center;
-  margin-top: 190px;
+.menu-entry {
   text-transform: uppercase;
   font-family: "Bebas Neue";
   font-size: 3em;
-  color: #808080;
+  letter-spacing: 0.08em;
+  word-spacing: 0.1em;
+  color: #264653;
 }
 
-.joystick-left {
-  top: calc(<%= @joystick_lv %>% - 25px);
-  left: calc(<%= @joystick_lh %>% - 25px);
-}
-
-.joystick-right {
-  top: calc(<%= @joystick_rv %>% - 25px);
-  left: calc(<%= @joystick_rh %>% - 25px);
+.menu-entry.active {
+  color: #2a9d8f;
 }
 </style>

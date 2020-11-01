@@ -1,0 +1,76 @@
+<div style="display: flex; justify-content: center;">
+  <%= if @indicator_on do %>
+    <i class="fas fa-lightbulb"
+       style="font-size: 6em; margin-top: 30px; color: #e9c46a;
+              cursor: pointer;
+              transition: color 0.5s ease;"
+       phx-click="toggle-light">
+    </i>
+  <% else %>
+    <i class="fas fa-lightbulb"
+       style="font-size: 6em; margin-top: 30px; color: #264653;
+              cursor: pointer;
+              transition: color 0.5s ease;"
+       phx-click="toggle-light">
+    </i>
+  <% end %>
+</div>
+
+<section class="joystick-row">
+  <div class="joystick-base">
+    <div class="joystick-head joystick-left"></div>
+    <div class="joystick-name">
+      Left
+    </div>
+  </div>
+
+  <div class="joystick-base">
+    <div class="joystick-head joystick-right"></div>
+    <div class="joystick-name">
+      Right
+    </div>
+  </div>
+</section>
+
+<style>
+.joystick-row {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-around;
+}
+
+.joystick-base {
+  width: 200px;
+  height: 200px;
+  border: 2px dashed #808080;
+  position: relative;
+  border-radius: 950302px;
+}
+
+.joystick-head {
+  width: 50px;
+  height: 50px;
+  border: 3px solid #2a9d8f;
+  position: absolute;
+  border-radius: 950302px;
+}
+
+.joystick-name {
+  text-align: center;
+  margin-top: 190px;
+  text-transform: uppercase;
+  font-family: "Bebas Neue";
+  font-size: 3em;
+  color: #808080;
+}
+
+.joystick-left {
+  top: calc(<%= @joystick_lv %>% - 25px);
+  left: calc(<%= @joystick_lh %>% - 25px);
+}
+
+.joystick-right {
+  top: calc(<%= @joystick_rv %>% - 25px);
+  left: calc(<%= @joystick_rh %>% - 25px);
+}
+</style>
