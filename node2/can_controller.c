@@ -163,7 +163,7 @@ uint8_t can_send(CAN_MESSAGE* can_msg, uint8_t tx_mb_id)
  *
  * \param rx_mb_id ID of receive mailbox to be used
  *
- * \retval Success(0) or failure(1)
+ * \retval Success(1) or failure(0)
  */
 uint8_t can_receive(CAN_MESSAGE* can_msg, uint8_t rx_mb_id)
 {
@@ -198,11 +198,11 @@ uint8_t can_receive(CAN_MESSAGE* can_msg, uint8_t rx_mb_id)
 		//Reset for new receive
 		CAN0->CAN_MB[rx_mb_id].CAN_MMR = CAN_MMR_MOT_MB_RX;
 		CAN0->CAN_MB[rx_mb_id].CAN_MCR |= CAN_MCR_MTCR;
-		return 0;
+		return 1;
 	}
 	else //Mailbox busy
 	{
-		return 1;
+		return 0;
 	}
 }
 

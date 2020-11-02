@@ -9,20 +9,25 @@
 #include "timer.h"
 #include "servo.h"
 #include "ir.h"
+#include "motor.h"
 
 #include "sam.h"
 
 
-
+/*
 void delay(uint32_t ms){
     ms = ms * 6962;
     while(ms){
             ms--;
     }
 }
+*/
 
 int main()
 {
+    motor_dac_init();
+    motor_turnon();
+
     SystemInit();
     play_ping_pong_init();
 
@@ -59,24 +64,55 @@ int main()
     
     // LED_init
     REG_PIOA_PER = (PIO_PA19) | (PIO_PA20);
-    REG_PIOA_OER = (PIO_PA19) | (PIO_PA20);
+    REG_PIOA_OER = (PIO_PA19) | (PIO_PA20);   
+
+    printf("%x \n\r",REG_PIOD_LOCKSR);
+
+    motor_dac_set_speed(0x00);
+
+     REG_PIOD_PER = PIO_PD10;
+     REG_PIOD_OER = PIO_PD10;
 
     ir_adc_init();
+    while (1){
+            
 
-    while (1)
-    {
+        
+        printf("%x \n\r",REG_PIOD_ODSR);
+        REG_PIOD_CODR = PIO_PD10;
+        delay(100000);
+        printf("%x \n\r",REG_PIOD_ODSR);
+        REG_PIOD_SODR = PIO_PD10; 
+        delay(100000);   
+       
+       
+        /*
 
+        if (can_receive(&test_broken, 0)){
+            if(test_broken.id == 0x10){
+                 int16_t value = test_broken.data[0] - 130;
+                 //printf("%d \n\r", value);
+                 motor_dac_set_speed(value);
+            }
+        }
+
+        */
+        //motor_dac_send(0xaaaa);
         //uint32_t score = play_ping_pong_read_score();
         //printf("%d.%2d s\n\r", score/4,25* (score % 4));
+       
+       /*
         if(ir_beam_broken()){
             test_broken.data[0] = ir_beam_broken();
             test_broken.data[1] = play_ping_pong_read_score();
             can_send(&test_broken, 0);
         }
-
+        
         ADC->ADC_CR = ADC_CR_START;
         while (!(ADC->ADC_ISR & ADC_ISR_EOC0)){}
         printf("%d \n\r", ir_beam_broken());
+*/
+        
      
         /* code */
         //printf("%x \n\r", CAN0->CAN_SR);

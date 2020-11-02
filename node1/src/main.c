@@ -25,6 +25,8 @@ static void system_init(){
 }
 
 int main(){
+
+
     system_init();
 
     hid_init();
@@ -72,10 +74,17 @@ int main(){
     HidJoystick joystick;
     HidJoystickPosition joystick_last_position = HID_JOYSTICK_CENTER;
 
+
+
     while(1){
+
+
         menu_print(p_menu_item, menu_selected_item);
 
         joystick = hid_joystick_read();
+        frame_joystick_send(joystick); 
+
+        _delay_ms(10);
 
         if(joystick.position == HID_JOYSTICK_DOWN
             && joystick_last_position != HID_JOYSTICK_DOWN
@@ -97,14 +106,14 @@ int main(){
         joystick_last_position = joystick.position;
 
         //KAN IKKE LESE HVIS LINJEN ER BRUTT FRA START
-        if(can_recv(&test_recv)){
+        /*if(can_recv(&test_recv)){
             display_print(7, "Broken", 0);
             printf("%d\n\r", (uint8_t)test_recv.buffer[1]);
         }
         else {
             display_print(7, "", 0);
         }
-
+        */
         //printf("0x%2x\n\r", can_test());
         
 
