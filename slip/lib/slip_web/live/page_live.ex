@@ -120,7 +120,7 @@ defmodule SlipWeb.PageLive do
 
       :right ->
         IO.puts "RIGHT"
-        {:noreply, assign(socket, :in_main_menu, false)}
+        {:noreply, change_menu_or_activate(socket)}
 
       :up ->
         {:noreply, select_prev_menu_item(socket)}
@@ -132,6 +132,29 @@ defmodule SlipWeb.PageLive do
         {:noreply, socket}
     end
   end
+
+
+  defp change_menu_or_activate(socket) do
+    if socket.assigns.in_main_menu do
+      assign(socket, :in_main_menu, false)
+    else
+      effect = socket.assigns.sub_menu.items
+        |> Enum.filter(&(&1.selected))
+        |> hd()
+        |> Map.fetch!(:effect)
+      effect.()
+      socket
+    end
+  end
+
+
+
+  def handle_info(_, socket) do
+    {:noreply, update(socket, :unhandled, &(&1 + 1))}
+  end
+
+
+  # Helper functions
 
   defp select_next_menu_item(socket) do
     if socket.assigns.in_main_menu do
@@ -178,22 +201,5 @@ defmodule SlipWeb.PageLive do
     |> Enum.filter(&(&1.selected))
     |> hd()
     |> Map.fetch!(:sub_menu)
-  end
-
-
-
-
-  def handle_info({:joystick_lh, raw}, socket) do
-    value = round(raw * -70 / 247 + 85)
-    {:noreply, assign(socket, :joystick_lh, value)}
-  end
-
-  def handle_info({:joystick_lv, raw}, socket) do
-    value = round(raw * -70 / 247 + 85)
-    {:noreply, assign(socket, :joystick_lv, value)}
-  end
-
-  def handle_info(_, socket) do
-    {:noreply, update(socket, :unhandled, &(&1 + 1))}
   end
 end
