@@ -129,11 +129,9 @@ defmodule SlipWeb.PageLive do
   def handle_info({:joystick_lp, move}, socket) do
     case move do
       :left ->
-        IO.puts "LEFT"
         {:noreply, assign(socket, :in_main_menu, true)}
 
       :right ->
-        IO.puts "RIGHT"
         {:noreply, change_menu_or_activate(socket)}
 
       :up ->
