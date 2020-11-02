@@ -122,8 +122,8 @@ defmodule Slip.Link do
   end
 
   defp joystick_position(1), do: :center
-  defp joystick_position(2), do: :left
-  defp joystick_position(3), do: :right
+  defp joystick_position(2), do: :right
+  defp joystick_position(3), do: :left
   defp joystick_position(4), do: :up
   defp joystick_position(5), do: :down
   defp joystick_position(_), do: :invalid
