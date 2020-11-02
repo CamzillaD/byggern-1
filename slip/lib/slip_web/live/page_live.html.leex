@@ -1,5 +1,6 @@
-<h3>Unhandled messages: <%= @unhandled %></h3>
-<button phx-click="reset">Reset unhandled counter</button>
+<%# <h3>Unhandled messages: <%= @unhandled %1></h3> %>
+<%# <button phx-click="reset">Reset unhandled counter</button> %>
+<h1>In main menu: <%= @in_main_menu %></h1>
 
 <section class="menu">
   <div class="menu-column">
@@ -11,16 +12,14 @@
   </div>
 
   <div class="menu-column">
-    <%= for item <- @menu do %>
-      <%= if item.selected do %>
-        <div class="menu-secondary-title">
-          <%= item.sub_title %>
-        </div>
+    <div class="menu-sub-title">
+      <%= @sub_menu.title %>
+    </div>
 
-        <%= for s <- item.secondary do %>
-          <h1 class="menu-entry"><%= s.title %></h1>
-        <% end %>
-      <% end %>
+    <%= for item <- @sub_menu.items do %>
+      <h1 class="menu-entry <%= if item.selected, do: "active" %>">
+        <%= item.title %>
+      </h1>
     <% end %>
   </div>
 </section>
@@ -62,7 +61,7 @@
   font-size: 3.5em;
 }
 
-.menu-secondary-title {
+.menu-sub-title {
   text-transform: uppercase;
   font-family: "Bebas Neue";
   font-size: 2em;

@@ -10,59 +10,96 @@ defmodule SlipWeb.PageLive do
 
     menu = [
       %{
-        title: "Play Game",
+        title: "Indicator",
         selected: true,
-        sub_title: "Play as:",
-        secondary: [
-          %{
-            title: "Kolbjørn",
-            selected: true
-          },
-          %{
-            title: "Camilla",
-            selected: false
-          },
-          %{
-            title: "Jon",
-            selected: false
-          },
-        ]
+        sub_menu: %{
+          title: "Turn on or off?",
+          items: [
+            %{
+              title: "On",
+              selected: true,
+              effect: fn ->
+                Link.set_indicator(true)
+              end
+            },
+            %{
+              title: "Off",
+              selected: false,
+              effect: fn ->
+                Link.set_indicator(false)
+              end
+            }
+          ]
+        }
+      },
+
+      %{
+        title: "Play Game",
+        selected: false,
+        sub_menu: %{
+          title: "Play as:",
+          items: [
+            %{
+              title: "Kolbjørn",
+              selected: true
+            },
+            %{
+              title: "Camilla",
+              selected: false
+            },
+            %{
+              title: "Jon",
+              selected: false
+            },
+          ]
+        }
       },
 
       %{
         title: "Reset",
         selected: false,
-        sub_title: "Reset what?",
-        secondary: [
-          %{
-            title: "Scores",
-            selected: true
-          },
-          %{
-            title: "Controller",
-            selected: false
-          }
-        ]
+        sub_menu: %{
+          title: "Reset what?",
+          items: [
+            %{
+              title: "Scores",
+              selected: true
+            },
+            %{
+              title: "Controller",
+              selected: false
+            }
+          ]
+        }
       },
 
       %{
         title: "Play Song",
         selected: false,
-        sub_title: "Which song?",
-        secondary: [
-          %{
-            title: "Wet Ass Pussy",
-            selected: true
-          },
-          %{
-            title: "Bend Ova",
-            selected: false
-          }
-        ]
+        sub_menu: %{
+          title: "Which song?",
+          items: [
+            %{
+              title: "Wet Ass Pussy",
+              selected: true
+            },
+            %{
+              title: "Bend Ova",
+              selected: false
+            }
+          ]
+        }
       }
     ]
 
-    {:ok, assign(socket, menu: menu, in_main: true, unhandled: 0)}
+    new_socket = assign(socket,
+      menu: menu,
+      sub_menu: hd(menu).sub_menu,
+      in_main_menu: true,
+      unhandled: 0,
+    )
+
+    {:ok, new_socket}
   end
 
   def handle_event("toggle-light", _params, socket) do
@@ -78,25 +115,46 @@ defmodule SlipWeb.PageLive do
   def handle_info({:joystick_lp, move}, socket) do
     case move do
       :left ->
-        {:noreply, assign(socket, :in_main, true)}
+        IO.puts "LEFT"
+        {:noreply, assign(socket, :in_main_menu, true)}
 
       :right ->
-        {:noreply, assign(socket, :in_main, false)}
+        IO.puts "RIGHT"
+        {:noreply, assign(socket, :in_main_menu, false)}
 
       :up ->
-        {:noreply, update(socket, :menu, &select_prev/1)}
+        {:noreply, select_prev_menu_item(socket)}
 
       :down ->
-        {:noreply, update(socket, :menu, &select_next/1)}
+        {:noreply, select_next_menu_item(socket)}
 
       _ ->
         {:noreply, socket}
     end
   end
 
+  defp select_next_menu_item(socket) do
+    if socket.assigns.in_main_menu do
+      menu = select_next [], socket.assigns.menu
+      sub_menu = fetch_sub_menu menu
+      assign(socket, menu: menu, sub_menu: sub_menu)
+    else
+      menu = socket.assigns.sub_menu
+      items = select_next [], menu.items
+      assign(socket, sub_menu: %{menu | items: items})
+    end
+  end
 
-  defp select_next(menu) do
-    select_next [], menu
+  defp select_prev_menu_item(socket) do
+    if socket.assigns.in_main_menu do
+      menu = select_next [], Enum.reverse(socket.assigns.menu)
+      sub_menu = fetch_sub_menu menu
+      assign(socket, menu: Enum.reverse(menu), sub_menu: sub_menu)
+    else
+      menu = socket.assigns.sub_menu
+      items = select_next [], Enum.reverse(menu.items)
+      assign(socket, sub_menu: %{menu | items: Enum.reverse(items)})
+    end
   end
 
   defp select_next(before, [%{selected: true} = head | tail]) do
@@ -115,11 +173,11 @@ defmodule SlipWeb.PageLive do
     select_next before ++ [head], tail
   end
 
-  defp select_prev(menu) do
+  defp fetch_sub_menu(menu) do
     menu
-    |> Enum.reverse()
-    |> select_next()
-    |> Enum.reverse()
+    |> Enum.filter(&(&1.selected))
+    |> hd()
+    |> Map.fetch!(:sub_menu)
   end
 
 
