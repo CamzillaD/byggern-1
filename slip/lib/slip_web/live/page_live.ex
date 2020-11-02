@@ -62,7 +62,7 @@ defmodule SlipWeb.PageLive do
       }
     ]
 
-    {:ok, assign(socket, menu: menu, active_menu: :primary, unhandled: 0)}
+    {:ok, assign(socket, menu: menu, in_main: true, unhandled: 0)}
   end
 
   def handle_event("toggle-light", _params, socket) do
@@ -75,13 +75,26 @@ defmodule SlipWeb.PageLive do
     {:noreply, assign(socket, :unhandled, 0)}
   end
 
+  # def handle_event("menu", %{"item" => item}, socket) do
+  #   menu = socket.assigns.menu
+  #     |> Enum.map(&(Map.put &1, :selected, false))
+  #     |> Enum.map(fn m ->
+  #       if m.title == item do
+  #         Map.put(m, :selected, true)
+  #       else
+  #         m
+  #       end
+  #     end)
+  #   {:noreply, assign(socket, :menu, menu)}
+  # end
+
   def handle_info({:joystick_lp, move}, socket) do
     case move do
       :left ->
-        {:noreply, assign(socket, :active_menu, :primary)}
+        {:noreply, assign(socket, :in_main, true)}
 
       :right ->
-        {:noreply, assign(socket, :active_menu, :secondary)}
+        {:noreply, assign(socket, :in_main, false)}
 
       :up ->
         {:noreply, update(socket, :menu, &select_prev/1)}

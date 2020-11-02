@@ -13,9 +13,32 @@
   color: #2a9d8f;
   text-shadow: 2px 2px 0 #264653;
 
-  // background: linear-gradient(135deg, #ff1b6b, #45caff);
-  // background-clip: text;
-  // color: transparent;
+  user-select: none;
+  -moz-user-select: none;
+  -webkit-user-select: none;
+  -ms-user-select: none;
+
+  animation-name: pan-around;
+  animation-duration: 4s;
+  animation-iteration-count: infinite;
+  animation-direction: alternate;
+  animation-timing-function: ease-in-out;
+}
+
+@media only screen and (max-width: 600px) {
+  .main-title {
+    font-size: 20vw;
+  }
+}
+
+@keyframes pan-around {
+  from {
+    text-shadow: 4px 2px 0 #264653;
+  }
+
+  to {
+    text-shadow: -4px 2px 0 #264653;
+  }
 }
 
 /* LiveView specific classes for your customizations */

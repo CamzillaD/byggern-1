@@ -4,43 +4,72 @@
 <section class="menu">
   <div class="menu-column">
     <%= for item <- @menu do %>
-      <%= if item.selected do %>
-        <h1 class="menu-entry active"><%= item.title %></h1>
-      <% else %>
-        <h1 class="menu-entry"><%= item.title %></h1>
-      <% end %>
+      <h1 class="menu-entry <%= if item.selected, do: "active" %>"
+          <%# phx-click="menu" phx-value-item="<%= item.title %1>" %>
+      >
+        <%= item.title %>
+      </h1>
     <% end %>
   </div>
 
   <div class="menu-column">
+    <%= for item <- @menu do %>
+      <%= if item.selected do %>
+        <div class="menu-secondary-title">
+          <%= item.sub_title %>
+        </div>
+
+        <%= for s <- item.secondary do %>
+          <h1 class="menu-entry"><%= s.title %></h1>
+        <% end %>
+      <% end %>
+    <% end %>
   </div>
 </section>
 
 
 
 <style>
+* {
+  color: #264653;
+}
+
 .menu {
+  margin-top: 2em;
   width: 100%;
   display: flex;
   flex-direction: row;
   justify-content: space-between;
 }
 
+.menu-column:first-of-type {
+  border-right: 1px dashed #808080;
+}
+
 .menu-column {
   width: 48%;
-  border: 1px solid black;
+  position: relative;
 }
 
 .menu-entry {
   text-transform: uppercase;
   font-family: "Bebas Neue";
-  font-size: 3em;
-  letter-spacing: 0.08em;
-  word-spacing: 0.1em;
-  color: #264653;
+  font-size: 2.8em;
+  <%# color: #264653; %>
+  transition: color 0.2s ease, font-size 0.1s ease;
 }
 
 .menu-entry.active {
   color: #2a9d8f;
+  font-size: 3.5em;
+}
+
+.menu-secondary-title {
+  text-transform: uppercase;
+  font-family: "Bebas Neue";
+  font-size: 2em;
+  color: #808080;
+  position: absolute;
+  top: -1.2em;
 }
 </style>
