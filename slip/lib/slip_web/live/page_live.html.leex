@@ -4,9 +4,7 @@
 <section class="menu">
   <div class="menu-column">
     <%= for item <- @menu do %>
-      <h1 class="menu-entry <%= if item.selected, do: "active" %>"
-          <%# phx-click="menu" phx-value-item="<%= item.title %1>" %>
-      >
+      <h1 class="menu-entry <%= if item.selected, do: "active" %>">
         <%= item.title %>
       </h1>
     <% end %>

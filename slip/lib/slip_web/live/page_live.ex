@@ -75,19 +75,6 @@ defmodule SlipWeb.PageLive do
     {:noreply, assign(socket, :unhandled, 0)}
   end
 
-  # def handle_event("menu", %{"item" => item}, socket) do
-  #   menu = socket.assigns.menu
-  #     |> Enum.map(&(Map.put &1, :selected, false))
-  #     |> Enum.map(fn m ->
-  #       if m.title == item do
-  #         Map.put(m, :selected, true)
-  #       else
-  #         m
-  #       end
-  #     end)
-  #   {:noreply, assign(socket, :menu, menu)}
-  # end
-
   def handle_info({:joystick_lp, move}, socket) do
     case move do
       :left ->
