@@ -41,15 +41,21 @@ defmodule SlipWeb.PageLive do
           items: [
             %{
               title: "Kolbjørn",
-              selected: true
+              selected: true,
+              effect: fn ->
+              end
             },
             %{
               title: "Camilla",
-              selected: false
+              selected: false,
+              effect: fn ->
+              end
             },
             %{
               title: "Jon",
-              selected: false
+              selected: false,
+              effect: fn ->
+              end
             },
           ]
         }
@@ -63,11 +69,15 @@ defmodule SlipWeb.PageLive do
           items: [
             %{
               title: "Scores",
-              selected: true
+              selected: true,
+              effect: fn ->
+              end
             },
             %{
               title: "Controller",
-              selected: false
+              selected: false,
+              effect: fn ->
+              end
             }
           ]
         }
@@ -81,11 +91,15 @@ defmodule SlipWeb.PageLive do
           items: [
             %{
               title: "Wet Ass Pussy",
-              selected: true
+              selected: true,
+              effect: fn ->
+              end
             },
             %{
               title: "Bend Ova",
-              selected: false
+              selected: false,
+              effect: fn ->
+              end
             }
           ]
         }

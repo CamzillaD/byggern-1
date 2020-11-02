@@ -1,9 +1,8 @@
 <%# <h3>Unhandled messages: <%= @unhandled %1></h3> %>
 <%# <button phx-click="reset">Reset unhandled counter</button> %>
-<h1>In main menu: <%= @in_main_menu %></h1>
 
 <section class="menu">
-  <div class="menu-column">
+  <div class="menu-column <%= if @in_main_menu, do: "active" %>">
     <%= for item <- @menu do %>
       <h1 class="menu-entry <%= if item.selected, do: "active" %>">
         <%= item.title %>
@@ -11,8 +10,11 @@
     <% end %>
   </div>
 
-  <div class="menu-column">
-    <div class="menu-sub-title">
+  <div class="menu-column-separator">
+  </div>
+
+  <div class="menu-column <%= if !@in_main_menu, do: "active" %>">
+    <div class="menu-title">
       <%= @sub_menu.title %>
     </div>
 
@@ -32,27 +34,31 @@
 }
 
 .menu {
-  margin-top: 2em;
+  margin-top: 4em;
   width: 100%;
   display: flex;
   flex-direction: row;
   justify-content: space-between;
 }
 
-.menu-column:first-of-type {
-  border-right: 1px dashed #808080;
+.menu-column {
+  width: 42%;
+  position: relative;
+  opacity: 50%;
 }
 
-.menu-column {
-  width: 48%;
-  position: relative;
+.menu-column.active {
+  opacity: 100%;
+}
+
+.menu-column-separator {
+  border-left: 1px dashed #808080;
 }
 
 .menu-entry {
   text-transform: uppercase;
   font-family: "Bebas Neue";
   font-size: 2.8em;
-  <%# color: #264653; %>
   transition: color 0.2s ease, font-size 0.1s ease;
 }
 
@@ -61,12 +67,18 @@
   font-size: 3.5em;
 }
 
-.menu-sub-title {
+.menu-title {
   text-transform: uppercase;
   font-family: "Bebas Neue";
-  font-size: 2em;
+  font-size: 1.8em;
+  letter-spacing: 0.1em;
   color: #808080;
   position: absolute;
-  top: -1.2em;
+  top: -1.5em;
+
+  user-select: none;
+  -moz-user-select: none;
+  -webkit-user-select: none;
+  -ms-user-select: none;
 }
 </style>
