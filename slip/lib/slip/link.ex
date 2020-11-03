@@ -6,6 +6,7 @@ defmodule Slip.Link do
   @sof_flag 0x02
 
   @event_indicator 0x16
+  @event_request_reset 0x17
 
   @event_joystick_lh 0x31
   @event_joystick_lv 0x32
@@ -17,6 +18,10 @@ defmodule Slip.Link do
   @event_joystick_rp 0x38
   @event_joystick_rs 0x39
 
+  @event_can_interrupt 0x66
+
+  @event_generic 0xef
+
 
   def start_link(_opts \\ []) do
     GenServer.start_link __MODULE__, :ok, name: __MODULE__
@@ -24,6 +29,10 @@ defmodule Slip.Link do
 
   def set_indicator(on?) do
     GenServer.call __MODULE__, {:indicator, on?}
+  end
+
+  def request_slave_reset do
+    GenServer.call __MODULE__, :request_reset
   end
 
 
@@ -45,6 +54,11 @@ defmodule Slip.Link do
   def handle_call({:indicator, on?}, _from, %{uart: uart} = state) do
     value = if on?, do: 0x01, else: 0x00
     write uart, @event_indicator, value
+    {:reply, :ok, state}
+  end
+
+  def handle_call(:request_reset, _from, %{uart: uart} = state) do
+    write uart, @event_request_reset, 0x00
     {:reply, :ok, state}
   end
 
@@ -109,6 +123,13 @@ defmodule Slip.Link do
 
       @event_joystick_rp ->
         {:joystick_rp, joystick_position(value)}
+
+
+      @event_can_interrupt ->
+        :can_interrupt
+
+      @event_generic ->
+        {:generic, value}
 
       _ ->
         :unknown
