@@ -1,9 +1,10 @@
 #include <avr/io.h>
 #include "uart.h"
+#include "spi.h"
 #include "mcp2518fd.h"
+#include "can.h"
 #include "network.h"
 #include "adc.h"
-#include "spi.h"
 #include "joystick.h"
 #include "touch_button.h"
 #include "connection_indicator.h"
@@ -29,20 +30,36 @@ int main(){
     system_init();
 
     adc_init();
-
-    sei();
+    touch_button_init();
 
     uart_init();
+
     spi_init();
     mcp2518fd_init();
+    can_init();
 
     connection_indicator_init();
+    connection_indicator_turn_off();
 
     Joystick left, right;
 
-    touch_button_init();
+    sei();
 
-    connection_indicator_turn_off();
+    uint8_t id = mcp2518fd_sfr_read(MCP_SFR_C1CON(3));
+    network_write_generic(id);
+
+    CanFrame frame;
+    frame.id = 0x0016;
+    frame.size = 4;
+    frame.buffer[0] = 'D';
+    frame.buffer[1] = 'I';
+    frame.buffer[2] = 'C';
+    frame.buffer[3] = 'K';
+
+    can_send(&frame);
+
+
+    _delay_ms(100);
 
     while(1){
         joystick_read(&left, &right);

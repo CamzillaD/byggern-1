@@ -1,124 +1,116 @@
 #include "can.h"
-#include "mcp2515.h"
+#include "mcp2518fd.h"
 #include <avr/interrupt.h>
 
 #include "uart.h"
+#include "network.h"
+#include "connection_indicator.h"
 
-//static gjør denne modul-bundet, lenkern kan ikke lenke den fra noe annet sted
-static uint8_t recv_flag;
-static CanFrame recv_frame;
-static uint8_t recv_buffer[8];
-
-
-ISR(INT0_vect){
-    
-    recv_flag = 1;
- 
-    recv_frame.id = (mcp_read(MCP_RXB0SIDH) << 3);
-    recv_frame.id |= (mcp_read(MCP_RXB0SIDL) >> 5);
-
-    recv_frame.size = mcp_read(MCP_RXB0DLC) & 0x0f;
-    
-    
-    for (int i = 0; i < recv_frame.size; i++){
-        recv_frame.buffer[i] = mcp_read(MCP_RXB0DM + i);
-    }
-
-    uint8_t mcp_canintf = 0x00;
-    mcp_write(MCP_CANINTF, mcp_canintf);
+ISR(INT2_vect){
+    network_write_can_interrupt();
+    connection_indicator_turn_on();
 }
-
 
 void can_init(){
     cli();
-    recv_frame.buffer = recv_buffer;
 
-    // INT0 pin input
-    DDRD &= ~(1 << PD2);
+    /* Disable INT2 interrupt */
+    GICR &= ~(1 << INT2);
 
-    // Trigger INT0 on falling edge
-    MCUCR |= (1 << ISC01);
+    /* PE0 input with internal pullup */
+    DDRE &= ~(1 << PE0);
+    PORTE |= (1 << PE0);
 
-    // Enable INT0
-    GICR |= (1 << INT0);
+    /* Trigger INT2 on falling edge */
+    EMCUCR &= ~(1 << ISC2);
 
-    mcp_init();
-
-    uint8_t mcp_config
-        = MCP_CANCTRL_CONFIG
-        | MCP_CANCTRL_PRESCALE_8
-        | MCP_CANCTRL_CLKOUT
-        ;
-    mcp_write(MCP_CANCTRL, mcp_config);
-
-    //setter bit timing
-    //0x03
-    uint8_t mcp_cnf3 = (0x01);
-    mcp_write(MCP_CNF3, mcp_cnf3);
-    // 0x80 | 0x18 | 0x06
-    uint8_t mcp_cnf2 = (0xb5);
-    mcp_write(MCP_CNF2, mcp_cnf2);
-    //0x40 | 0x13
-    uint8_t mcp_cnf1 = (0x43);
-    mcp_write(MCP_CNF1, mcp_cnf1);
-
-    uint8_t mcp_caninte = 0x01;
-    mcp_write(MCP_CANINTE, mcp_caninte);
-    
-    
-
-    mcp_config
-        = MCP_CANCTRL_NORMAL
-        | MCP_CANCTRL_PRESCALE_8
-        | MCP_CANCTRL_CLKOUT
-        ;
-    mcp_write(MCP_CANCTRL, mcp_config);
-
-    uint8_t mcp_rxb0_config = 0x60;
-    mcp_write(MCP_RXB0CTRL, mcp_rxb0_config);
+    /* Enable INT2 interrupt */
+    GICR |= (1 << INT2);
 
 
+    /* Enter configuration mode */
+    mcp2518fd_sfr_write(MCP_SFR_C1CON(3), 0x04);
+    /* Enable transmit queue */
+    mcp2518fd_sfr_write(MCP_SFR_C1CON(2), 0x10);
+
+    /* Disable error correction module */
+    mcp2518fd_sfr_write(MCP_SFR_ECCCON(0), 0x00);
+
+    /* Nominal bit time configuration */
+    /* mcp2518fd_sfr_write(MCP_SFR_C1NBTCFG(...), ...); */
+
+    /* Data bit time configuration */
+    /* mcp2518fd_sfr_write(MCP_SFR_C1DBTCFG(...), ...); */
+
+    /* Transmit queue: 8 data byte payload, 8 messages deep */
+    mcp2518fd_sfr_write(MCP_SFR_C1TXQCON(3), 0x07);
+    /* Transmit queue: Unlimited attempts, highest priority */
+    mcp2518fd_sfr_write(MCP_SFR_C1TXQCON(2), 0x7f);
+    /* Transmit queue: No interrupts */
+    mcp2518fd_sfr_write(MCP_SFR_C1TXQCON(0), 0x00);
+
+    /* FIFO1: 8 data byte payload, 16 messages deep */
+    mcp2518fd_sfr_write(MCP_SFR_C1FIFOCON(1, 3), 0x0f);
+    /* FIFO1: Receive FIFO, no timestamp, no interrupts */
+    mcp2518fd_sfr_write(MCP_SFR_C1FIFOCON(1, 2), 0x00);
+
+    /* Filter 0 disabled */
+    mcp2518fd_sfr_write(MCP_SFR_C1FLTCON(0, 0), 0x00);
+    /* Filter 0 accepts only standard frames, all IDs */
+    mcp2518fd_sfr_write(MCP_SFR_FLTOBJ(0, 3), 0x00);
+    mcp2518fd_sfr_write(MCP_SFR_C1MASK(0, 3), 0x40);
+    mcp2518fd_sfr_write(MCP_SFR_C1MASK(0, 2), 0x00);
+    mcp2518fd_sfr_write(MCP_SFR_C1MASK(0, 1), 0x00);
+    mcp2518fd_sfr_write(MCP_SFR_C1MASK(0, 0), 0x00);
+    /* Filter 0 enabled and puts messages in FIFO1 */
+    mcp2518fd_sfr_write(MCP_SFR_C1FLTCON(0, 0), 0x81);
+
+    /* Interrupt on receive FIFO */
+    /* mcp2518fd_sfr_write(MCP_SFR_C1INT(2), 0x02); */
+    /* Interrupt on transmission */
+    mcp2518fd_sfr_write(MCP_SFR_C1INT(2), 0x01);
+
+    /* Internal loop-back mode */
+    mcp2518fd_sfr_write(MCP_SFR_C1CON(3), 0x02);
+
+    /* CAN 2.0 Normal mode */
+    /* mcp2518fd_sfr_write(MCP_SFR_C1CON(3), 0x06); */
 
     sei();
 }
 
-void can_send(const CanFrame * p_frame){
-
-    mcp_write(MCP_TXB0SIDH, (uint8_t)(p_frame->id >> 3));
-    mcp_write(MCP_TXB0SIDL, (uint8_t)(p_frame->id << 5));
-
-    mcp_write(MCP_TXB0DLC, p_frame->size & 0x0f);
-
-    for(uint8_t i = 0; i < p_frame->size; i++){
-        mcp_write(MCP_TXB0D0 + i, p_frame->buffer[i]);
+uint8_t can_send(const CanFrame * p_frame){
+    /* Check if there is space in the transmit queue */
+    if(!(mcp2518fd_sfr_read(MCP_SFR_C1TXQSTA(0)) & 0x01)){
+        return 1;
     }
 
-    mcp_bit_modify(MCP_TXB0CTRL, MCP_TXB_TX_REQUEST, 1);
+    /* Get transmit queue user address */
+    uint16_t ua = 0;
+    /* ua |= mcp2518fd_sfr_read(MCP_SFR_C1TXQUA(3)) << 24; */
+    /* ua |= mcp2518fd_sfr_read(MCP_SFR_C1TXQUA(2)) << 16; */
+    ua |= mcp2518fd_sfr_read(MCP_SFR_C1TXQUA(1)) << 8;
+    ua |= mcp2518fd_sfr_read(MCP_SFR_C1TXQUA(0));
+    ua += 0x400;
+
+
+    uint8_t transmit_object_header[8] = {
+        0x00, 0x00,
+        ((p_frame->id >> 8) & 0x07), (uint8_t)(p_frame->id),
+        0x00, 0x00,
+        0x00, (p_frame->size & 0x0f)
+    };
+
+    mcp2518fd_mem_write(ua +  0, transmit_object_header + 0);
+    mcp2518fd_mem_write(ua +  4, transmit_object_header + 4);
+    mcp2518fd_mem_write(ua +  8, p_frame->buffer + 0);
+    mcp2518fd_mem_write(ua + 12, p_frame->buffer + 4);
+
+    /* Request send and increment user address */
+    mcp2518fd_sfr_write(MCP_SFR_C1TXQCON(1), 0x03);
+
+    return 0;
 }
 
 uint8_t can_recv(CanFrame * p_frame){
-    if (recv_flag == 0){
-        return 0;
-    }
-
-    cli();
-
-    p_frame->id = recv_frame.id;
-    p_frame->size = recv_frame.size;
-
-    for (int i = 0; i < p_frame->size; i++){
-        p_frame->buffer[i] = recv_frame.buffer[i];
-    }
-    recv_flag = 0;
-
-    sei();
-
-    return 1;
 }
- 
-uint8_t can_test(){
-    return mcp_read(0x2c);
-}
-
-
-
