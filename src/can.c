@@ -12,8 +12,6 @@ ISR(INT2_vect){
 }
 
 void can_init(){
-    cli();
-
     /* Disable INT2 interrupt */
     GICR &= ~(1 << INT2);
 
@@ -75,8 +73,6 @@ void can_init(){
 
     /* CAN 2.0 Normal mode */
     /* mcp2518fd_sfr_write(MCP_SFR_C1CON(3), 0x06); */
-
-    sei();
 }
 
 uint8_t can_send(const CanFrame * p_frame){

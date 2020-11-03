@@ -27,6 +27,7 @@ static void system_init(){
 
 
 int main(){
+    cli();
     system_init();
 
     adc_init();
