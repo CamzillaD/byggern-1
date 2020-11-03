@@ -1,7 +1,9 @@
 #include "network.h"
 #include "mcp2518fd.h"
+#include "connection_indicator.h"
 #include "uart.h"
 #include <avr/interrupt.h>
+#include <avr/wdt.h>
 
 #define NETWORK_BUFFER_SIZE 16
 #define NETWORK_FLAG 0x02
@@ -33,6 +35,11 @@ void static network_enact(){
             else{
                 connection_indicator_turn_off();
             }
+            break;
+
+        case NETWORK_EVENT_REQUEST_RESET:
+            wdt_enable(WDTO_15MS);
+            while(1);
             break;
     }
 }
@@ -78,4 +85,12 @@ void network_write_joystick(Joystick * p_left, Joystick * p_right){
     if(p_right->position_changed){
         network_write(NETWORK_EVENT_JOYSTICK_RP, p_right->position);
     }
+}
+
+void network_write_can_interrupt(){
+    network_write(NETWORK_EVENT_CAN_INTERRUPT, 0x01);
+}
+
+void network_write_generic(uint8_t value){
+    network_write(NETWORK_EVENT_GENERIC, value);
 }
