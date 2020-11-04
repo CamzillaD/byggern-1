@@ -15,7 +15,10 @@
       <div class="can-message-data">
         <%= for byte <- can.data do %>
           <div class="can-message-data-byte">
-            <%= Integer.to_string(byte, 16) %>
+            <%= byte
+                |> Integer.to_string(16)
+                |> String.pad_leading(2, "0")
+            %>
             <span class="shrink">(<%= byte %>)</span>
           </div>
         <% end %>
