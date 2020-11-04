@@ -19,6 +19,7 @@ typedef enum {
     NETWORK_EVENT_JOYSTICK_RP = 0x38,   // Position
     NETWORK_EVENT_JOYSTICK_RS = 0x39,   // Select
 
+    /* Bidirectional */
     NETWORK_EVENT_CAN_CLEAR   = 0x40,
     NETWORK_EVENT_CAN_ID_LOW  = 0x42,
     NETWORK_EVENT_CAN_ID_HIGH = 0x43,
@@ -26,6 +27,7 @@ typedef enum {
     NETWORK_EVENT_CAN_DATA    = 0x45,
     NETWORK_EVENT_CAN_COMMIT  = 0x4f,
 
+    /* Debugging */
     NETWORK_EVENT_CAN_INTERRUPT = 0x66,
 
     NETWORK_EVENT_GENERIC = 0xef

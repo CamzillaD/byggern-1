@@ -89,6 +89,9 @@ void can_init(){
 }
 
 uint8_t can_send(const CanFrame * p_frame){
+    uint8_t interrupt_enable = SREG;
+    cli();
+
     /* Check if transmit queue is full */
     if(!(mcp2518fd_sfr_read(MCP_SFR_C1TXQSTA(0)) & 0x01)){
         return 1;
@@ -120,6 +123,9 @@ uint8_t can_send(const CanFrame * p_frame){
 
     /* Request send and increment user address */
     mcp2518fd_sfr_write(MCP_SFR_C1TXQCON(1), 0x03);
+
+    /* Restore status register */
+    SREG = interrupt_enable;
 
     return 0;
 }

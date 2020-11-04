@@ -19,6 +19,9 @@ static NetworkAwait m_await = NETWORK_AWAIT_FLAG;
 static uint8_t m_read_event;
 static uint8_t m_read_value;
 
+static CanFrame m_can_frame;
+static uint8_t m_can_data_head;
+
 void static network_write(uint8_t event, uint8_t value){
     uart_send(NETWORK_FLAG);
     uart_send(event);
@@ -40,6 +43,31 @@ void static network_enact(){
         case NETWORK_EVENT_REQUEST_RESET:
             wdt_enable(WDTO_15MS);
             while(1);
+            break;
+
+        case NETWORK_EVENT_CAN_CLEAR:
+            m_can_data_head = 0;
+            m_can_frame.id = 0;
+            break;
+
+        case NETWORK_EVENT_CAN_ID_LOW:
+            m_can_frame.id |= m_read_value;
+            break;
+
+        case NETWORK_EVENT_CAN_ID_HIGH:
+            m_can_frame.id |= (m_read_value << 8);
+            break;
+
+        case NETWORK_EVENT_CAN_SIZE:
+            m_can_frame.size = m_read_value;
+            break;
+
+        case NETWORK_EVENT_CAN_DATA:
+            m_can_frame.buffer[m_can_data_head++] = m_read_value;
+            break;
+
+        case NETWORK_EVENT_CAN_COMMIT:
+            can_send(&m_can_frame);
             break;
     }
 }
