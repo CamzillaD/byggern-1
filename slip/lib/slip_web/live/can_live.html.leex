@@ -1,4 +1,7 @@
+<section class="top-bar">
 <h2>CAN RX: <%= @can_messages_received %></h2>
+<button phx-click="reset">Reset Controller</button>
+</section>
 
 <section class="can-message-container">
   <%= for can <- @last_can_messages do %>
@@ -80,5 +83,11 @@
 
 .shrink {
   font-size: 0.6em;
+}
+
+.top-bar {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
 }
 </style>

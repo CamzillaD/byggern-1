@@ -42,6 +42,10 @@ defmodule Slip.Link do
     GenServer.call __MODULE__, :request_reset
   end
 
+  def can_send(can_message) do
+    GenServer.call __MODULE__, {:can_send, can_message}
+  end
+
 
   def init(:ok) do
     uart_port = Application.get_env :slip, :uart_port, "ttyACM0"
@@ -72,6 +76,27 @@ defmodule Slip.Link do
   def handle_call(:request_reset, _from, %{uart: uart} = state) do
     write uart, @event_request_reset, 0x00
     {:reply, :ok, state}
+  end
+
+  def handle_call({:can_send, can}, _from, %{uart: uart} = state) do
+    valid_id = can.id >= 0 && can.id < 2048
+    valid_size = can.size >= 0 && can.size <= 8
+
+    if (valid_id && valid_size) do
+      write uart, @event_can_clear, 0x01
+      write uart, @event_can_id_low, can.id &&& 0xff
+      write uart, @event_can_id_high, (can.id >>> 8) &&& 0xff
+      write uart, @event_can_size, can.size
+
+      Enum.each can.data, fn d ->
+        write uart, @event_can_data, d &&& 0xff
+      end
+
+      write uart, @event_can_commit, 0x01
+      {:reply, :ok, state}
+    else
+      {:reply, :error, state}
+    end
   end
 
   def handle_info({:circuits_uart, _port, r}, %{buffer: b} = state) do
@@ -163,7 +188,7 @@ defmodule Slip.Link do
         {true, {:generic, value}, can}
 
       _ ->
-        {true, :unknown, can}
+        {false, :unknown, can}
     end
 
     if send? do
@@ -174,7 +199,6 @@ defmodule Slip.Link do
   end
 
   defp broadcast(_, can) do
-    Phoenix.PubSub.broadcast Slip.PubSub, "slip", :unknown
     can
   end
 

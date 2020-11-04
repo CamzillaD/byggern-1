@@ -108,15 +108,6 @@ defmodule SlipWeb.PageLive do
     {:noreply, assign(socket, indicator_on: on?)}
   end
 
-  def handle_event("reset", _params, socket) do
-    {:noreply, assign(socket, :unhandled, 0)}
-  end
-
-  def handle_event("request-reset", _params, socket) do
-    Link.request_slave_reset()
-    {:noreply, socket}
-  end
-
   def handle_info({:joystick_lp, move}, socket) do
     case move do
       :left ->

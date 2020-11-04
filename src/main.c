@@ -58,6 +58,9 @@ int main(){
         can_send(&frame);
         frame.id++;
 
+        frame.buffer[1] = frame.id;
+        frame.buffer[0] = frame.id >> 8;
+
         uint8_t error = can_recv(&recv);
 
         if(!error){

@@ -1,6 +1,7 @@
 defmodule SlipWeb.CanLive do
   use SlipWeb, :live_view
   alias Phoenix.PubSub
+  alias Slip.Link
 
   def mount(_params, _session, socket) do
     if connected?(socket) do
@@ -16,6 +17,11 @@ defmodule SlipWeb.CanLive do
     {:ok, new_socket}
   end
 
+  def handle_event("reset", _params, socket) do
+    Link.request_slave_reset()
+    {:noreply, socket}
+  end
+
   def handle_info({:can, can}, socket) do
     new_socket = socket
       |> update(:can_messages_received, &(&1 + 1))
@@ -29,6 +35,6 @@ defmodule SlipWeb.CanLive do
 
   defp add_can_message(messages, new) do
     [new | messages]
-    |> Enum.take(3)
+    |> Enum.take(4)
   end
 end
