@@ -10,8 +10,8 @@ typedef struct {
 
 void can_init();
 
-uint8_t can_send(const CanFrame * p_frame);
+uint8_t can_write(const CanFrame * p_frame);
 
-uint8_t can_recv(CanFrame * p_frame);
+uint8_t can_read(CanFrame * p_frame);
 
 #endif

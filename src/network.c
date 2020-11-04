@@ -67,7 +67,7 @@ void static network_enact(){
             break;
 
         case NETWORK_EVENT_CAN_COMMIT:
-            can_send(&m_can_frame);
+            can_write(&m_can_frame);
             break;
     }
 }

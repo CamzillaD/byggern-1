@@ -44,38 +44,36 @@ int main(){
 
     Joystick left, right;
 
+    CanFrame can_write_frame;
+    can_write_frame.id = 0;
+    can_write_frame.size = 0;
+
+    CanFrame can_read_frame;
+    can_read_frame.id = 0;
+    can_read_frame.size = 0;
+
     sei();
 
-    CanFrame frame;
-    frame.id = 200;
-    frame.size = 2;
-    frame.buffer[0] = 0x00;
-    frame.buffer[1] = 0xff;
-
-    CanFrame recv;
+    can_write_frame.size = 2;
 
     while(1){
-        can_send(&frame);
-        frame.id++;
+        can_write(&can_write_frame);
 
-        frame.buffer[1] = frame.id;
-        frame.buffer[0] = frame.id >> 8;
+        can_write_frame.id++;
+        can_write_frame.buffer[1] = can_write_frame.id;
+        can_write_frame.buffer[0] = can_write_frame.id >> 8;
 
-        uint8_t error = can_recv(&recv);
+        uint8_t error = can_read(&can_read_frame);
 
         if(!error){
-            /* network_write_generic(recv.id); */
-
-            network_write_can_message(&recv);
+            network_write_can_message(&can_read_frame);
         }
 
-        _delay_ms(100);
-    }
-
-    while(1){
         joystick_read(&left, &right);
 
         network_write_joystick(&left, &right);
+
+        _delay_ms(50);
     }
 
     return 0;

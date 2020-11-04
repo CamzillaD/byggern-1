@@ -88,7 +88,7 @@ void can_init(){
     /* mcp2518fd_sfr_write(MCP_SFR_C1CON(3), 0x06); */
 }
 
-uint8_t can_send(const CanFrame * p_frame){
+uint8_t can_write(const CanFrame * p_frame){
     uint8_t interrupt_enable = SREG;
     cli();
 
@@ -129,7 +129,7 @@ uint8_t can_send(const CanFrame * p_frame){
     return 0;
 }
 
-uint8_t can_recv(CanFrame * p_frame){
+uint8_t can_read(CanFrame * p_frame){
     /* Check if receive FIFO1 is empty */
     if(!(mcp2518fd_sfr_read(MCP_SFR_C1FIFOSTA(1, 0)) & 0x01)){
         return 1;
