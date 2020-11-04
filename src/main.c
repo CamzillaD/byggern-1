@@ -59,11 +59,14 @@ int main(){
     while(1){
         can_send(&frame);
         frame.id++;
+        frame.buffer[3]++;
 
         uint8_t error = can_recv(&recv);
 
         if(!error){
-            network_write_generic(recv.id);
+            /* network_write_generic(recv.id); */
+
+            network_write_can_message(&recv);
         }
 
         _delay_ms(1000);

@@ -87,6 +87,22 @@ void network_write_joystick(Joystick * p_left, Joystick * p_right){
     }
 }
 
+void network_write_can_message(const CanFrame * p_frame){
+    uint8_t id_low = (uint8_t)(p_frame->id);
+    uint8_t id_high = (uint8_t)(p_frame->id >> 8);
+
+    network_write(NETWORK_EVENT_CAN_CLEAR, 0x01);
+    network_write(NETWORK_EVENT_CAN_ID_LOW, id_low);
+    network_write(NETWORK_EVENT_CAN_ID_HIGH, id_high);
+    network_write(NETWORK_EVENT_CAN_SIZE, p_frame->size);
+
+    for(uint8_t i = 0; i < p_frame->size; i++){
+        network_write(NETWORK_EVENT_CAN_DATA, p_frame->buffer[i]);
+    }
+
+    network_write(NETWORK_EVENT_CAN_COMMIT, 0x01);
+}
+
 void network_write_can_interrupt(){
     network_write(NETWORK_EVENT_CAN_INTERRUPT, 0x01);
 }
