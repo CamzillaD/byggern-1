@@ -46,21 +46,28 @@ int main(){
 
     sei();
 
-    uint8_t id = mcp2518fd_sfr_read(MCP_SFR_C1CON(3));
-    network_write_generic(id);
-
     CanFrame frame;
-    frame.id = 0x0016;
+    frame.id = 0;
     frame.size = 4;
     frame.buffer[0] = 'D';
     frame.buffer[1] = 'I';
     frame.buffer[2] = 'C';
     frame.buffer[3] = 'K';
 
-    can_send(&frame);
+    CanFrame recv;
 
+    while(1){
+        can_send(&frame);
+        frame.id++;
 
-    _delay_ms(100);
+        uint8_t error = can_recv(&recv);
+
+        if(!error){
+            network_write_generic(recv.id);
+        }
+
+        _delay_ms(1000);
+    }
 
     while(1){
         joystick_read(&left, &right);
