@@ -1,0 +1,81 @@
+<h2>CAN RX: <%= @can_messages_received %></h2>
+
+<section class="can-message-container">
+  <%= for can <- @last_can_messages do %>
+    <div class="can-message">
+      <div class="can-message-header">
+        <div>
+          ID: <span class="highlight"><%= can.id %></span>
+        </div>
+        <div>
+          Size: <span class="highlight"><%= can.size %></span>
+        </div>
+      </div>
+
+      <div class="can-message-data">
+        <%= for byte <- can.data do %>
+          <div class="can-message-data-byte">
+            <%= Integer.to_string(byte, 16) %>
+            <span class="shrink">(<%= byte %>)</span>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+</section>
+
+
+<style>
+.can-message-container {
+  text-transform: uppercase;
+  font-family: "Bebas Neue";
+  font-size: 1.5em;
+}
+
+.can-message {
+  width: 100%;
+  margin-bottom: 1.3em;
+}
+
+.can-message:last-of-type {
+  margin-bottom: 0;
+}
+
+.can-message-header {
+  width: 100%;
+  padding-bottom: 0.1em;
+  border-bottom: 1px dashed #808080;
+
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+}
+
+.can-message-header > * {
+  width: 30%;
+}
+
+.can-message-data {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  flex-wrap: wrap;
+}
+
+.can-message-data-byte {
+  margin-right: 0.8em;
+  font-size: 2.1em;
+}
+
+.can-message-data-byte:nth-child(even) {
+  color: #808080;
+}
+
+.highlight {
+  color: #2a9d8f;
+}
+
+.shrink {
+  font-size: 0.6em;
+}
+</style>

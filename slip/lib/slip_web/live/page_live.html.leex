@@ -1,5 +1,11 @@
 <%# <h3>Unhandled messages: <%= @unhandled %1></h3> %>
 <%# <button phx-click="reset">Reset unhandled counter</button> %>
+<h2>CAN interrupts: <%= @can_interrupt %></h2>
+
+<h2>Last generic event: <%= @generic %></h2>
+<h3>Generic count: <%= @generic_count %></h3>
+
+<button phx-click="request-reset">Reset slave</button>
 
 <section class="menu">
   <div class="menu-column <%= if @in_main_menu, do: "active" %>">
@@ -29,10 +35,6 @@
 
 
 <style>
-* {
-  color: #264653;
-}
-
 .menu {
   margin-top: 4em;
   width: 100%;

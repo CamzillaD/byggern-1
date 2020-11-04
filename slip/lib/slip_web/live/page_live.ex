@@ -3,6 +3,8 @@ defmodule SlipWeb.PageLive do
   alias Slip.Link
   alias Phoenix.PubSub
 
+  alias Slip.Scores
+
   def mount(_params, _session, socket) do
     if connected?(socket) do
       PubSub.subscribe(Slip.PubSub, "slip")
@@ -38,26 +40,7 @@ defmodule SlipWeb.PageLive do
         selected: false,
         sub_menu: %{
           title: "Play as:",
-          items: [
-            %{
-              title: "Kolbjørn",
-              selected: true,
-              effect: fn ->
-              end
-            },
-            %{
-              title: "Camilla",
-              selected: false,
-              effect: fn ->
-              end
-            },
-            %{
-              title: "Jon",
-              selected: false,
-              effect: fn ->
-              end
-            },
-          ]
+          items: Scores.list_players()
         }
       },
 
@@ -68,13 +51,13 @@ defmodule SlipWeb.PageLive do
           title: "Reset what?",
           items: [
             %{
-              title: "Scores",
+              title: "Controller",
               selected: true,
               effect: fn ->
               end
             },
             %{
-              title: "Controller",
+              title: "Scores",
               selected: false,
               effect: fn ->
               end
@@ -111,6 +94,9 @@ defmodule SlipWeb.PageLive do
       sub_menu: hd(menu).sub_menu,
       in_main_menu: true,
       unhandled: 0,
+      can_interrupt: 0,
+      generic: "",
+      generic_count: 0
     )
 
     {:ok, new_socket}
@@ -124,6 +110,11 @@ defmodule SlipWeb.PageLive do
 
   def handle_event("reset", _params, socket) do
     {:noreply, assign(socket, :unhandled, 0)}
+  end
+
+  def handle_event("request-reset", _params, socket) do
+    Link.request_slave_reset()
+    {:noreply, socket}
   end
 
   def handle_info({:joystick_lp, move}, socket) do
@@ -145,21 +136,16 @@ defmodule SlipWeb.PageLive do
     end
   end
 
-
-  defp change_menu_or_activate(socket) do
-    if socket.assigns.in_main_menu do
-      assign(socket, :in_main_menu, false)
-    else
-      effect = socket.assigns.sub_menu.items
-        |> Enum.filter(&(&1.selected))
-        |> hd()
-        |> Map.fetch!(:effect)
-      effect.()
-      socket
-    end
+  def handle_info(:can_interrupt, socket) do
+    {:noreply, update(socket, :can_interrupt, &(&1 + 1))}
   end
 
-
+  def handle_info({:generic, value}, socket) do
+    new_socket = socket
+      |> assign(:generic, Integer.to_string(value, 16))
+      |> update(:generic_count, &(&1 + 1))
+    {:noreply, new_socket}
+  end
 
   def handle_info(_, socket) do
     {:noreply, update(socket, :unhandled, &(&1 + 1))}
@@ -213,5 +199,18 @@ defmodule SlipWeb.PageLive do
     |> Enum.filter(&(&1.selected))
     |> hd()
     |> Map.fetch!(:sub_menu)
+  end
+
+  defp change_menu_or_activate(socket) do
+    if socket.assigns.in_main_menu do
+      assign(socket, :in_main_menu, false)
+    else
+      effect = socket.assigns.sub_menu.items
+        |> Enum.filter(&(&1.selected))
+        |> hd()
+        |> Map.fetch!(:effect)
+      effect.()
+      socket
+    end
   end
 end

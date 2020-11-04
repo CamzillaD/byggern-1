@@ -25,12 +25,6 @@
   animation-timing-function: ease-in-out;
 }
 
-@media only screen and (max-width: 600px) {
-  .main-title {
-    font-size: 20vw;
-  }
-}
-
 @keyframes pan-around {
   from {
     text-shadow: 4px 2px 0 #264653;
@@ -38,6 +32,12 @@
 
   to {
     text-shadow: -4px 2px 0 #264653;
+  }
+}
+
+@media only screen and (max-width: 600px) {
+  .main-title {
+    font-size: 20vw;
   }
 }
 

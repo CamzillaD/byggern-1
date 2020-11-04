@@ -18,6 +18,13 @@ defmodule Slip.Link do
   @event_joystick_rp 0x38
   @event_joystick_rs 0x39
 
+  @event_can_clear   0x40
+  @event_can_id_low  0x42
+  @event_can_id_high 0x43
+  @event_can_size    0x44
+  @event_can_data    0x45
+  @event_can_commit  0x4f
+
   @event_can_interrupt 0x66
 
   @event_generic 0xef
@@ -45,7 +52,12 @@ defmodule Slip.Link do
 
     state = %{
       buffer: <<>>,
-      uart: pid
+      uart: pid,
+      can: %{
+        id: 0,
+        size: 0,
+        data: []
+      }
     }
 
     {:ok, state}
@@ -65,11 +77,11 @@ defmodule Slip.Link do
   def handle_info({:circuits_uart, _port, r}, %{buffer: b} = state) do
     {new_buffer, messages} = parse_buffer b <> r
 
-    Enum.each messages, fn m ->
-      broadcast(m)
+    new_can = Enum.reduce messages, state.can, fn m, can ->
+      broadcast(m, can)
     end
 
-    new_state = %{state | buffer: new_buffer}
+    new_state = %{state | buffer: new_buffer, can: new_can}
     {:noreply, new_state}
   end
 
@@ -102,44 +114,68 @@ defmodule Slip.Link do
 
   # Messages from slave to host
 
-  defp broadcast({event, value}) do
-    message = case event do
+  defp broadcast({event, value}, can) do
+    {send?, message, new_can} = case event do
       @event_joystick_lh ->
-        {:joystick_lh, value}
+        {true, {:joystick_lh, value}, can}
 
       @event_joystick_lv ->
-        {:joystick_lv, value}
+        {true, {:joystick_lv, value}, can}
 
       @event_joystick_lp ->
-        {:joystick_lp, joystick_position(value)}
+        {true, {:joystick_lp, joystick_position(value)}, can}
 
 
 
       @event_joystick_rh ->
-        {:joystick_rh, value}
+        {true, {:joystick_rh, value}, can}
 
       @event_joystick_rv ->
-        {:joystick_rv, value}
+        {true, {:joystick_rv, value}, can}
 
       @event_joystick_rp ->
-        {:joystick_rp, joystick_position(value)}
+        {true, {:joystick_rp, joystick_position(value)}, can}
+
+
+      @event_can_clear ->
+        {false, nil, %{can | data: [], id: 0}}
+
+      @event_can_id_low ->
+        {false, nil, %{can | id: value ||| can.id}}
+
+      @event_can_id_high ->
+        {false, nil, %{can | id: (value <<< 8) ||| can.id}}
+
+      @event_can_size ->
+        {false, nil, %{can | size: value}}
+
+      @event_can_data ->
+        {false, nil, %{can | data: [value | can.data]}}
+
+      @event_can_commit ->
+        {true, {:can, %{can | data: Enum.reverse(can.data)}}, can}
 
 
       @event_can_interrupt ->
-        :can_interrupt
+        {true, :can_interrupt, can}
 
       @event_generic ->
-        {:generic, value}
+        {true, {:generic, value}, can}
 
       _ ->
-        :unknown
+        {true, :unknown, can}
     end
 
-    Phoenix.PubSub.broadcast Slip.PubSub, "slip", message
+    if send? do
+      Phoenix.PubSub.broadcast Slip.PubSub, "slip", message
+    end
+
+    new_can
   end
 
-  defp broadcast(_) do
+  defp broadcast(_, can) do
     Phoenix.PubSub.broadcast Slip.PubSub, "slip", :unknown
+    can
   end
 
   defp joystick_position(1), do: :center

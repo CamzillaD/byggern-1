@@ -18,6 +18,7 @@ defmodule SlipWeb.Router do
     pipe_through :browser
 
     live "/", PageLive, :index
+    live "/can", CanLive, :index
   end
 
   # Other scopes may use custom stacks.
