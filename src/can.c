@@ -103,10 +103,9 @@ uint8_t can_send(const CanFrame * p_frame){
     ua |= mcp2518fd_sfr_read(MCP_SFR_C1TXQUA(0));
     ua += 0x400;
 
-
     uint8_t transmit_object_header[8] = {
         (uint8_t)(p_frame->id),
-        ((p_frame->id >> 8) & 0x07),
+        (uint8_t)((p_frame->id >> 8) & 0x07),
         0x00,
         0x00,
 
@@ -150,7 +149,7 @@ uint8_t can_recv(CanFrame * p_frame){
     mcp2518fd_mem_read(ua + 12, p_frame->buffer + 4);
 
     p_frame->id = receive_object_header[0];
-    p_frame->id |= ((receive_object_header[1] & 0x07) << 3);
+    p_frame->id |= ((receive_object_header[1] & 0x07) << 8);
     p_frame->size = (receive_object_header[4] & 0x0f);
 
     /* Increment user address */

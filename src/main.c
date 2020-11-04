@@ -47,19 +47,16 @@ int main(){
     sei();
 
     CanFrame frame;
-    frame.id = 0;
-    frame.size = 4;
-    frame.buffer[0] = 'D';
-    frame.buffer[1] = 'I';
-    frame.buffer[2] = 'C';
-    frame.buffer[3] = 'K';
+    frame.id = 200;
+    frame.size = 2;
+    frame.buffer[0] = 0x00;
+    frame.buffer[1] = 0xff;
 
     CanFrame recv;
 
     while(1){
         can_send(&frame);
         frame.id++;
-        frame.buffer[3]++;
 
         uint8_t error = can_recv(&recv);
 
@@ -69,7 +66,7 @@ int main(){
             network_write_can_message(&recv);
         }
 
-        _delay_ms(1000);
+        _delay_ms(100);
     }
 
     while(1){
