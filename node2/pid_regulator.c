@@ -43,7 +43,7 @@ void pid_regulator_init(PidConfig pid_config){
 }
 
 double pid_regulator_get_u(double set_point, double sample){
-    double error = set_point - sample;
+    double error = sample - set_point;
     integral += error;
 
     return error * k_p + k_i * integral;

@@ -26,70 +26,50 @@ static void system_init(){
 
 int main(){
 
-
     system_init();
-
     hid_init();
     sei();
-
     display_init();
-
-
     uart_init();
+    display_clear();
+    can_init();
+
     fdevopen((int (*)(char, FILE*)) uart_send,(int (*)(FILE*)) uart_recv);
 
 
     volatile uint8_t * disp_c = (volatile uint8_t *)0x1000;
     volatile uint8_t * disp_d = (volatile uint8_t *)0x1200;
 
-    uint16_t loop = 0;
-
-    display_clear();
-
-
-    can_init();
-    
-    
-    
-
-    CanFrame test_recv;
-    uint8_t recv_buffer[8];
-    test_recv.size = 8;
-    test_recv.buffer = recv_buffer;
-
-    CanFrame test_send;
-    uint8_t send_buffer[8] = {0xff, 0xee, 0x00, 0x00, 0x00, 0x00, 0x00, 0x22};
-    test_send.size = 8;
-    test_send.buffer = send_buffer;
-    test_send.id = 2;
-
-    printf("Camilla eller whatever \n\r");
-
-    can_send(&test_send);
-    HidJoystick stick = hid_joystick_read();
-    frame_joystick_send(stick);
-
+    printf("Node1 fungerer \n\r");
  
     const MenuItem * p_menu_item = menu_root_node();
     uint8_t menu_selected_item = 0;
    
     HidJoystick joystick;
     HidJoystickPosition joystick_last_position = HID_JOYSTICK_CENTER;
-
-
-    HidButton button_test;
+    HidButton button;
+    HidSlider slider;
 
     while(1){
 
-        //button_test = hid_button_read();
-        //frame_button_send(button_test);
+        button = hid_button_read();
+        frame_button_send(button);
 
-        menu_print(p_menu_item, menu_selected_item);
+        _delay_ms(100);
+
+        slider = hid_slider_read();
+        frame_slider_send(slider);
+
+        _delay_ms(100);
 
         joystick = hid_joystick_read();
         frame_joystick_send(joystick); 
 
         _delay_ms(100);
+
+
+
+        menu_print(p_menu_item, menu_selected_item);
 
         if(joystick.position == HID_JOYSTICK_DOWN
             && joystick_last_position != HID_JOYSTICK_DOWN

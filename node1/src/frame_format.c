@@ -29,3 +29,15 @@ void frame_button_send(HidButton button){
     can_send(&m_frame);
 
 }
+
+void frame_slider_send(HidSlider slider){
+    m_frame.id = 0 | 0x12;
+
+    m_buffer[0] = slider.left;
+    m_buffer[1] = slider.right;
+
+    m_frame.size = 2;
+    m_frame.buffer = m_buffer;
+
+    can_send(&m_frame);
+}

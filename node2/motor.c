@@ -51,14 +51,12 @@ void motor_dac_set_speed(int16_t data){
 }
 
 
-uint32_t motor_turnon(){
+void motor_turnon(){
     REG_PIOD_SODR = PIO_PD9;
-    return 0;
 } 
 
-uint32_t motor_turnoff(){
+void motor_turnoff(){
     REG_PIOD_CODR = PIO_SODR_P9;
-    return 0;
 }
 
 void delay(uint32_t ms){
@@ -72,11 +70,12 @@ void delay(uint32_t ms){
 void motor_reset_encoder(){
      //toggle !RST to reset encoder
      REG_PIOD_CODR |= PIO_SODR_P1;
-     delay(1);
+     delay(100);
      REG_PIOD_SODR |= PIO_SODR_P1;
 }
 
-uint16_t motor_read_encoder(){
+
+    uint16_t motor_read_encoder(){
 
     uint16_t data = 0;
 
@@ -103,3 +102,31 @@ uint16_t motor_read_encoder(){
 }
 
 
+void motor_encoder_init(){
+    motor_dac_set_speed(0x08);
+    delay(70000);
+    motor_reset_encoder();
+
+
+    motor_dac_set_speed(-0x08);
+    delay(70000);
+    
+    m_encoder_max_value = motor_read_encoder();
+
+    motor_dac_set_speed(0x08);
+    delay(70000);
+    motor_reset_encoder();
+
+    motor_dac_set_speed(0x00);
+}
+
+void motor_go_to_position(uint8_t pos){ //skal ta inn slider
+    double set_point = m_encoder_max_value * pos / 255.0;
+    uint16_t encoder = motor_read_encoder();
+    if( encoder > m_encoder_max_value){
+        encoder = 0;
+    }
+    double u = pid_regulator_get_u(set_point, encoder);
+
+    motor_dac_set_speed(u);
+}
