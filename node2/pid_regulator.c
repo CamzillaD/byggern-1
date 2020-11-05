@@ -1,20 +1,36 @@
 #include "pid_regulator.h"
 #include "sam.h"
+#include <stdint.h>
 
 /* This PID regulator implementation is based on */
 /* the paper "PID Controller Using the TMS320C31 DSK for */
 /* Real-Time DC Motor Speed and Position Control" by */
 /* Jianxin Tang and Rulph Chassaing */
 
-static double m_a0, m_a1, m_a2;
+/* static double m_a0, m_a1, m_a2; */
+/* static double m_last_sample; */
+
+#define PID_ERROR_SCALE 0.01
+#define PID_D_HORIZON 10
+
+static double m_kp, m_ki, m_kd;
+static double m_euler_integral;
+static double m_max_integral;
+static double m_time_step;
 static double m_last_sample;
 
-static double k_p, k_i;
-static double integral = 0;
+void pid_regulator_init(double k_p, double k_i, double k_d){
+    m_kp = k_p;
+    m_ki = k_i;
+    m_kd = k_d;
 
-void pid_regulator_init(PidConfig pid_config){
-    k_p = pid_config.k_p;
-    k_i = pid_config.k_i;
+    m_euler_integral = 0.0;
+    m_max_integral = 100.0;
+    m_time_step = 5.0;
+
+    m_last_sample = 0.0;
+
+
     /* double k_p = pid_config.k_p; */
     /* double k_i = pid_config.k_i; */
     /* double k_d = pid_config.k_d; */
@@ -43,10 +59,35 @@ void pid_regulator_init(PidConfig pid_config){
 }
 
 double pid_regulator_get_u(double set_point, double sample){
-    double error = sample - set_point;
-    integral += error;
+    double error = (set_point - sample) * PID_ERROR_SCALE;
+    m_euler_integral += error;
 
-    return error * k_p + k_i * integral;
+    double p_term = m_kp * error;
+
+    double i_term = 0;
+    if(abs(m_euler_integral) < m_max_integral){
+        i_term = m_ki * m_euler_integral;
+    }
+    else if(m_euler_integral < 0){
+        i_term = -m_ki * m_max_integral;
+        m_euler_integral = -m_max_integral;
+    }
+    else{
+        i_term = m_ki * m_max_integral;
+        m_euler_integral = m_max_integral;
+    }
+
+    static uint8_t d_horizon = PID_D_HORIZON;
+    static double d_term = 0;
+    d_horizon--;
+
+    if(d_horizon == 0){
+        d_horizon = PID_D_HORIZON;
+        d_term = (sample - m_last_sample);
+        m_last_sample = sample;
+    }
+
+    return p_term + i_term * m_time_step - d_term / m_time_step;
 
 /*     double num = m_a0 + m_a1 * sample + m_a2 * m_last_sample; */
 /*     double den = 1 - sample; */
