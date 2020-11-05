@@ -10,9 +10,9 @@
 #include "servo.h"
 #include "ir.h"
 #include "motor.h"
+#include "solenoid.h"
 
 #include "sam.h"
-
 
 
 /*
@@ -27,7 +27,9 @@ void delay(uint32_t ms){
 int main()
 {
     motor_dac_init();
+    motor_init();
     motor_turnon();
+    
 
     SystemInit();
     play_ping_pong_init();
@@ -54,13 +56,10 @@ int main()
    
     can_send(&test,0);
     timer_pwm_init();
-    timer_set_duty_cycle(0.5);
+    //timer_set_duty_cycle(0.5);
 
     CAN_MESSAGE test_broken;
     test.data[0] = 0x00;
-    test.data[1] = 0x00;
-    test.id = 0x09;
-    test.data_length = 2;
     
     
     // LED_init
@@ -69,42 +68,22 @@ int main()
 
     printf("%x \n\r",REG_PIOD_LOCKSR);
 
-    motor_dac_set_speed(0x04);
+    motor_dac_set_speed(0x00);
 
-     REG_PIOD_PER = PIO_PD10;
-     REG_PIOD_OER = PIO_PD10;
+    motor_reset_encoder();
 
     ir_adc_init();
-    while (1){
-            
-
-      /*
-        printf("%x \n\r",REG_PIOD_ODSR);
-        REG_PIOD_CODR = PIO_PD10;
-        delay(100000);
-        printf("%x \n\r",REG_PIOD_ODSR);
-        REG_PIOD_SODR = PIO_PD10; 
-        delay(100000);  
-
-       */ 
-       
+    motor_reset_encoder();
     
-        /* test control servo
-        if (can_receive(&test_broken, 0)){
-       float a = test_broken.data[1];
-       float b = 255;
-       float value = test_broken.data[1] /255.0;
-       timer_set_duty_cycle(value);
+    solenoid_init();
 
-       
-       printf("%d \n\r", (int)(value*1000));
-       
-       }
-        
-        
-    */
 
-   /*  Funksjon for å teste system med motor og servo
+    while (1){
+
+   // printf("%d \n\r", motor_read_encoder());
+    
+
+   //  Funksjon for å teste system med motor og servo
  
         if (can_receive(&test_broken, 0)){
             if(test_broken.id == 0x10){
@@ -116,29 +95,49 @@ int main()
                 float b = 255;
                 float value2 = test_broken.data[1] /255.0;
                 timer_set_duty_cycle(value2);
-
-
             }
         }
 
+
+/*
+     REG_PIOC_SODR = PIO_SODR_P12;
+    delay(1000);
+     REG_PIOC_CODR = PIO_CODR_P12;
+    delay(1000);
+
 */
 
+/*
+
+    if (can_receive(&test_broken, 0)){
+        if(test_broken.id == 0x11){
+            if(test_broken.data[0] == 1){
+                solenoid_activate();
+            }
+            else{
+                solenoid_deactivate();
+            }
+        }
+    }
+
+    */
     
         //motor_dac_send(0xaaaa);
         //uint32_t score = play_ping_pong_read_score();
         //printf("%d.%2d s\n\r", score/4,25* (score % 4));
        
        /*
+       
         if(ir_beam_broken()){
             test_broken.data[0] = ir_beam_broken();
             test_broken.data[1] = play_ping_pong_read_score();
             can_send(&test_broken, 0);
         }
-        
+        */
         ADC->ADC_CR = ADC_CR_START;
         while (!(ADC->ADC_ISR & ADC_ISR_EOC0)){}
         printf("%d \n\r", ir_beam_broken());
-*/
+
         
      
     /*

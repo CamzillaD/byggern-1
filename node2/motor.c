@@ -1,4 +1,5 @@
 #include "motor.h"
+#include "uart_and_printf/printf-stdarg.h"
 
 static uint16_t m_encoder_max_value;
 
@@ -14,13 +15,14 @@ void motor_dac_init(){
 
 void motor_init(){
     REG_PMC_PCER0 = PMC_PCER0_PID14 | PMC_PCER0_PID13 ; //enable clock
-    REG_PIOC_WPMR = 0x50494f00;
-    REG_PIOD_WPMR = 0x50494f00;
 
-    uint32_t input_mask = PIO_PER_P0 | PIO_PER_P1 | PIO_PER_P2 | PIO_PER_P3
-                        | PIO_PER_P4 | PIO_PER_P5 | PIO_PER_P6 | PIO_PER_P7;     
+ //   REG_PIOC_WPMR = 0x50494f00;
+ //   REG_PIOD_WPMR = 0x50494f00;
 
-    REG_PIOC_PER = input_mask; //enable pc1-pc8 = DO0-D07 => decoder counter value
+    uint32_t input_mask = PIO_PER_P1 | PIO_PER_P2 | PIO_PER_P3 | PIO_PER_P4
+                        | PIO_PER_P5 | PIO_PER_P6 | PIO_PER_P7 | PIO_PER_P8;     
+
+    REG_PIOC_PER = input_mask; //enable pc1-pc8 = DO0-D07 => encoder counter value
     REG_PIOC_ODR = input_mask; //output disable = input
 
     REG_PIOC_PUER = input_mask;
@@ -70,6 +72,7 @@ void delay(uint32_t ms){
 void motor_reset_encoder(){
      //toggle !RST to reset encoder
      REG_PIOD_CODR |= PIO_SODR_P1;
+     delay(1);
      REG_PIOD_SODR |= PIO_SODR_P1;
 }
 
@@ -77,8 +80,9 @@ uint16_t motor_read_encoder(){
 
     uint16_t data = 0;
 
-    REG_PIOD_CODR = PIO_SODR_P0; //sets !OE, can read MJ2-pins
-    REG_PIOD_CODR = PIO_SODR_P2; //sel low
+    REG_PIOD_CODR |= PIO_SODR_P0; //sets !OE, can read MJ2-pins
+    PIOD->PIO_CODR = PIO_CODR_P0;
+    REG_PIOD_CODR |= PIO_SODR_P2; //sel low
 
     //wait 20 microsek
     delay(1); 
@@ -93,6 +97,7 @@ uint16_t motor_read_encoder(){
     //motor_reset_encoder();
 
     REG_PIOD_SODR |= PIO_SODR_P0; //set OE high
+   
 
     return data;
 }

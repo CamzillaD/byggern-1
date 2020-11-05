@@ -13,7 +13,7 @@ uint8_t timer_pwm_init(){
 
     TC0->TC_CHANNEL[0].TC_CMR = TC_CMR_TCCLKS_TIMER_CLOCK4; //?????!
 
-    TC0->TC_CHANNEL[0].TC_IMR = TC_IMR_CPAS; // Enables RA compare interrupt!
+    //TC0->TC_CHANNEL[0].TC_IMR = TC_IMR_CPAS; // Enables RA compare interrupt! 
 
     /* PWM enableings*/
     TC0->TC_CHANNEL[0].TC_CMR = TC_CMR_WAVSEL_UP_RC | TC_CMR_WAVE | TC_CMR_ACPA_CLEAR | TC_CMR_ACPC_SET;

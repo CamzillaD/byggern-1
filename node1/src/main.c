@@ -49,6 +49,8 @@ int main(){
 
     can_init();
     
+    
+    
 
     CanFrame test_recv;
     uint8_t recv_buffer[8];
@@ -75,16 +77,19 @@ int main(){
     HidJoystickPosition joystick_last_position = HID_JOYSTICK_CENTER;
 
 
+    HidButton button_test;
 
     while(1){
 
+        //button_test = hid_button_read();
+        //frame_button_send(button_test);
 
         menu_print(p_menu_item, menu_selected_item);
 
         joystick = hid_joystick_read();
         frame_joystick_send(joystick); 
 
-        _delay_ms(10);
+        _delay_ms(100);
 
         if(joystick.position == HID_JOYSTICK_DOWN
             && joystick_last_position != HID_JOYSTICK_DOWN
