@@ -19,7 +19,7 @@ defmodule SlipWeb.PageLive do
     {:ok, new_socket}
   end
 
-  def handle_info(new_state, socket) do
+  def handle_info({:new, new_state}, socket) do
     %{
       menu: menu,
       sub_menu: sub_menu,
@@ -32,5 +32,9 @@ defmodule SlipWeb.PageLive do
       |> assign(:in_main_menu, in_main?)
 
     {:noreply, new_socket}
+  end
+
+  def handle_info(_, socket) do
+    {:noreply, socket}
   end
 end

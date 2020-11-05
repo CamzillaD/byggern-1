@@ -10,7 +10,6 @@ defmodule SlipWeb.CanLive do
 
     new_socket = assign(socket,
       can_messages_received: 0,
-      can_messages_sent: 0,
       last_can_messages: []
     )
 

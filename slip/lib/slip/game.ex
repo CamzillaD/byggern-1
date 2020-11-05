@@ -118,29 +118,30 @@ defmodule Slip.Game do
 
   def handle_cast({:joystick_lp, :left}, state) do
     new_state = %{state | in_main_menu: true}
-    PubSub.broadcast Slip.PubSub, "slip", new_state
+    PubSub.broadcast Slip.PubSub, "slip", {:new, new_state}
     {:noreply, new_state}
   end
 
   def handle_cast({:joystick_lp, :right}, state) do
     new_state = change_menu_or_activate(state)
-    PubSub.broadcast Slip.PubSub, "slip", new_state
+    PubSub.broadcast Slip.PubSub, "slip", {:new, new_state}
     {:noreply, new_state}
   end
 
   def handle_cast({:joystick_lp, :up}, state) do
     new_state = select_prev_menu_item(state)
-    PubSub.broadcast Slip.PubSub, "slip", new_state
+    PubSub.broadcast Slip.PubSub, "slip", {:new, new_state}
     {:noreply, new_state}
   end
 
   def handle_cast({:joystick_lp, :down}, state) do
     new_state = select_next_menu_item(state)
-    PubSub.broadcast Slip.PubSub, "slip", new_state
+    PubSub.broadcast Slip.PubSub, "slip", {:new, new_state}
     {:noreply, new_state}
   end
 
   def handle_cast({:can, can}, state) do
+    PubSub.broadcast Slip.PubSub, "slip", {:can, can}
     {:noreply, state}
   end
 
