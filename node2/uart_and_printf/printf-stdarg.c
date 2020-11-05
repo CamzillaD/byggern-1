@@ -15,7 +15,7 @@
 */
 
 /*
-Edited 2020 by Eivind H. Jølsgard and Gustav O. Often for use in course TTK4155
+Edited 2020 by Eivind H. Jï¿½lsgard and Gustav O. Often for use in course TTK4155
 2020
 */
 
@@ -142,6 +142,7 @@ static int print( char **out, const char *format, va_list args )
 				pc += printi (out, va_arg( args, int ), 10, 1, width, pad, 'a');
 				continue;
 			}
+			
 			if( *format == 'x' ) {
 				pc += printi (out, va_arg( args, int ), 16, 0, width, pad, 'a');
 				continue;

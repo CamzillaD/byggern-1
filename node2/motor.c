@@ -45,7 +45,7 @@ void motor_dac_set_speed(int16_t data){
         printf("høyre \n\r");
         REG_PIOD_CODR = PIO_CODR_P10; //går mot høyre
     }
-    DACC->DACC_CDR = (0x07 << 8);
+    DACC->DACC_CDR = (data << 8);
 }
 
 

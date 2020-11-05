@@ -14,6 +14,7 @@
 #include "sam.h"
 
 
+
 /*
 void delay(uint32_t ms){
     ms = ms * 6962;
@@ -68,7 +69,7 @@ int main()
 
     printf("%x \n\r",REG_PIOD_LOCKSR);
 
-    motor_dac_set_speed(0x00);
+    motor_dac_set_speed(0x04);
 
      REG_PIOD_PER = PIO_PD10;
      REG_PIOD_OER = PIO_PD10;
@@ -77,26 +78,52 @@ int main()
     while (1){
             
 
-        
+      /*
         printf("%x \n\r",REG_PIOD_ODSR);
         REG_PIOD_CODR = PIO_PD10;
         delay(100000);
         printf("%x \n\r",REG_PIOD_ODSR);
         REG_PIOD_SODR = PIO_PD10; 
-        delay(100000);   
-       
-       
-        /*
+        delay(100000);  
 
+       */ 
+       
+    
+        /* test control servo
+        if (can_receive(&test_broken, 0)){
+       float a = test_broken.data[1];
+       float b = 255;
+       float value = test_broken.data[1] /255.0;
+       timer_set_duty_cycle(value);
+
+       
+       printf("%d \n\r", (int)(value*1000));
+       
+       }
+        
+        
+    */
+
+   /*  Funksjon for å teste system med motor og servo
+ 
         if (can_receive(&test_broken, 0)){
             if(test_broken.id == 0x10){
                  int16_t value = test_broken.data[0] - 130;
-                 //printf("%d \n\r", value);
+                 printf("%d \n\r", value);
                  motor_dac_set_speed(value);
+
+                float a = test_broken.data[1];
+                float b = 255;
+                float value2 = test_broken.data[1] /255.0;
+                timer_set_duty_cycle(value2);
+
+
             }
         }
 
-        */
+*/
+
+    
         //motor_dac_send(0xaaaa);
         //uint32_t score = play_ping_pong_read_score();
         //printf("%d.%2d s\n\r", score/4,25* (score % 4));
@@ -114,13 +141,15 @@ int main()
 */
         
      
-        /* code */
-        //printf("%x \n\r", CAN0->CAN_SR);
-        //REG_PIOA_SODR = (PIO_PA19) | (PIO_PA20);
-        //delay(1);
-        //REG_PIOA_CODR = (PIO_PA19) | (PIO_PA20);
-        //delay(1);
-        //printf("%4x \n\r", timer_read_cv());
+    /*
+        printf("%x \n\r", CAN0->CAN_SR);
+        REG_PIOA_SODR = (PIO_PA19) | (PIO_PA20);
+        delay(1);
+        REG_PIOA_CODR = (PIO_PA19) | (PIO_PA20);
+        delay(1);
+        printf("%4x \n\r", timer_read_cv());
+
+        */
 
     }
 }
