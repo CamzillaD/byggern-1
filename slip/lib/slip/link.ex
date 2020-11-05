@@ -2,6 +2,7 @@ defmodule Slip.Link do
   use GenServer
   use Bitwise
   alias Circuits.UART
+  alias Slip.Game
 
   @sof_flag 0x02
 
@@ -11,12 +12,12 @@ defmodule Slip.Link do
   @event_joystick_lh 0x31
   @event_joystick_lv 0x32
   @event_joystick_lp 0x33
-  @event_joystick_ls 0x34
+  # @event_joystick_ls 0x34
 
   @event_joystick_rh 0x36
   @event_joystick_rv 0x37
   @event_joystick_rp 0x38
-  @event_joystick_rs 0x39
+  # @event_joystick_rs 0x39
 
   @event_can_clear   0x40
   @event_can_id_low  0x42
@@ -103,7 +104,7 @@ defmodule Slip.Link do
     {new_buffer, messages} = parse_buffer b <> r
 
     new_can = Enum.reduce messages, state.can, fn m, can ->
-      broadcast(m, can)
+      register(m, can)
     end
 
     new_state = %{state | buffer: new_buffer, can: new_can}
@@ -139,7 +140,7 @@ defmodule Slip.Link do
 
   # Messages from slave to host
 
-  defp broadcast({event, value}, can) do
+  defp register({event, value}, can) do
     {send?, message, new_can} = case event do
       @event_joystick_lh ->
         {true, {:joystick_lh, value}, can}
@@ -192,13 +193,13 @@ defmodule Slip.Link do
     end
 
     if send? do
-      Phoenix.PubSub.broadcast Slip.PubSub, "slip", message
+      Game.register message
     end
 
     new_can
   end
 
-  defp broadcast(_, can) do
+  defp register(_, can) do
     can
   end
 

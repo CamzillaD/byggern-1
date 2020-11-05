@@ -12,6 +12,7 @@ defmodule Slip.Application do
       # Start the PubSub system
       {Phoenix.PubSub, name: Slip.PubSub},
 
+      Slip.Game,
       Slip.Link,
       # Start the Endpoint (http/https)
       SlipWeb.Endpoint
