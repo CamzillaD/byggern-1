@@ -1,6 +1,8 @@
 #include "motor.h"
 #include "uart_and_printf/printf-stdarg.h"
 
+#define MOTOR_MAX_SPEED 180
+
 static uint16_t m_encoder_max_value;
 
 void motor_dac_init(){
@@ -20,7 +22,7 @@ void motor_init(){
  //   REG_PIOD_WPMR = 0x50494f00;
 
     uint32_t input_mask = PIO_PER_P1 | PIO_PER_P2 | PIO_PER_P3 | PIO_PER_P4
-                        | PIO_PER_P5 | PIO_PER_P6 | PIO_PER_P7 | PIO_PER_P8;     
+                        | PIO_PER_P5 | PIO_PER_P6 | PIO_PER_P7 | PIO_PER_P8;
 
     REG_PIOC_PER = input_mask; //enable pc1-pc8 = DO0-D07 => encoder counter value
     REG_PIOC_ODR = input_mask; //output disable = input
@@ -33,7 +35,7 @@ void motor_init(){
     REG_PIOD_CODR = PIO_ODR_P9; //set enable low
     REG_PIOD_SODR = PIO_SODR_P0 | PIO_SODR_P1; //restes, and OE pin high, no value on MJ2-pins
 
-    REG_PIOD_SODR = PIO_SODR_P1; //reset til høy, slik at den ikke resetter   
+    REG_PIOD_SODR = PIO_SODR_P1; //reset til høy, slik at den ikke resetter
 }
 
 //Må man sjekke txrdy-flagget før man skrver til reg?
@@ -53,7 +55,7 @@ void motor_dac_set_speed(int16_t data){
 
 void motor_turnon(){
     REG_PIOD_SODR = PIO_PD9;
-} 
+}
 
 void motor_turnoff(){
     REG_PIOD_CODR = PIO_SODR_P9;
@@ -84,8 +86,8 @@ void motor_reset_encoder(){
     REG_PIOD_CODR |= PIO_SODR_P2; //sel low
 
     //wait 20 microsek
-    delay(1); 
-    data |= (REG_PIOC_PDSR & 0x1FE) << 7; //data status register = data 
+    delay(1);
+    data |= (REG_PIOC_PDSR & 0x1FE) << 7; //data status register = data
 
    REG_PIOD_SODR = PIO_SODR_P2; //Sel high
 
@@ -96,7 +98,7 @@ void motor_reset_encoder(){
     //motor_reset_encoder();
 
     REG_PIOD_SODR |= PIO_SODR_P0; //set OE high
-   
+
 
     return data;
 }
@@ -110,7 +112,7 @@ void motor_encoder_init(){
 
     motor_dac_set_speed(-0x08);
     delay(70000);
-    
+
     m_encoder_max_value = motor_read_encoder();
 
     motor_dac_set_speed(0x08);
@@ -120,13 +122,22 @@ void motor_encoder_init(){
     motor_dac_set_speed(0x00);
 }
 
-void motor_go_to_position(uint8_t pos){ //skal ta inn slider
-    double set_point = m_encoder_max_value * pos / 255.0;
+void motor_go_to_position(uint8_t pos){
+    double set_point = m_encoder_max_value * (pos / 255.0);
     uint16_t encoder = motor_read_encoder();
+
     if( encoder > m_encoder_max_value){
         encoder = 0;
     }
+
     double u = pid_regulator_get_u(set_point, encoder);
+
+    if(u > MOTOR_MAX_SPEED){
+        u = MOTOR_MAX_SPEED;
+    }
+    if(u < -MOTOR_MAX_SPEED){
+        u = -MOTOR_MAX_SPEED;
+    }
 
     motor_dac_set_speed(u);
 }
