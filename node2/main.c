@@ -64,43 +64,58 @@ int main()
     motor_reset_encoder();
 
     ir_adc_init();
-    motor_reset_encoder();
+    motor_encoder_init();
     
     solenoid_init();
-    PidConfig pid_config;
-    pid_config.k_p = 0.0059;
-    pid_config.k_i = 0.000144;
 
-    pid_regulator_init(pid_config);
-    motor_encoder_init();
+    //pid_regulator_init(0.5, 0, 10);
 
     while (1){
 
-    //motor_go_to_position(120);
-    
-    
+        //motor_go_to_position(120);
+
+/*
+        motor_dac_set_speed(0x07);
+        delay(50000);
+        motor_dac_set_speed(-0x0);
+        delay(50000);
+        motor_dac_set_speed(0x04);
+        delay(50000);
+
+    */
+
 
    // printf("%d \n\r", motor_read_encoder());
     
 
-   //  Funksjon for å teste system med motor og servo
- 
- /*
+   //  Funksjon for å teste system med solenoide og (motor) 
+
+
         if (can_receive(&test_broken, 0)){
             if(test_broken.id == 0x10){
-                 int16_t value = test_broken.data[0] - 130;
-                 printf("%d \n\r", value);
-                 motor_dac_set_speed(value);
+                 int16_t value = test_broken.data[0] - 130;}
+                 //printf("%d \n\r", value);
+                 //motor_dac_set_speed(value);
+            if(test_broken.id == 0x11 & test_broken.data[0]){
+                printf("%d \n\r",test_broken.data[0]);
+                solenoid_activate();
+            }
+            else{
+                solenoid_deactivate();
+            }
+        }
 
+        
+
+
+/*              styring av servo med joystick fra koden over
                 float a = test_broken.data[1];
                 float b = 255;
                 float value2 = test_broken.data[1] /255.0;
                 timer_set_duty_cycle(value2);
-            }
-        }
-*/
+            
 
-/*
+
      REG_PIOC_SODR = PIO_SODR_P12;
     delay(1000);
      REG_PIOC_CODR = PIO_CODR_P12;
@@ -152,6 +167,6 @@ int main()
         printf("%4x \n\r", timer_read_cv());
 
         */
+        }
 
-    }
 }

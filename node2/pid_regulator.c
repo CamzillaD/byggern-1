@@ -10,7 +10,7 @@
 /* static double m_a0, m_a1, m_a2; */
 /* static double m_last_sample; */
 
-#define PID_ERROR_SCALE 0.01
+#define PID_ERROR_SCALE 0.0001
 #define PID_D_HORIZON 10
 
 static double m_kp, m_ki, m_kd;

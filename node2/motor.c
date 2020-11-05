@@ -1,7 +1,7 @@
 #include "motor.h"
 #include "uart_and_printf/printf-stdarg.h"
 
-#define MOTOR_MAX_SPEED 180
+#define MOTOR_MAX_SPEED 4
 
 static uint16_t m_encoder_max_value;
 
@@ -42,14 +42,12 @@ void motor_init(){
 void motor_dac_set_speed(int16_t data){
     //uint8_t speed = data;
     if (data < 0){
-        printf("venstre \n\r");
         REG_PIOD_SODR = PIO_SODR_P10; //går mot venstre
     }
     else{
-        printf("høyre \n\r");
         REG_PIOD_CODR = PIO_CODR_P10; //går mot høyre
     }
-    DACC->DACC_CDR = (data << 8);
+    DACC->DACC_CDR = (abs(data) << 7);
 }
 
 
@@ -115,9 +113,9 @@ void motor_encoder_init(){
 
     m_encoder_max_value = motor_read_encoder();
 
-    motor_dac_set_speed(0x08);
-    delay(70000);
-    motor_reset_encoder();
+    //motor_dac_set_speed(0x08);
+    //delay(70000);
+    //motor_reset_encoder();
 
     motor_dac_set_speed(0x00);
 }
@@ -132,12 +130,16 @@ void motor_go_to_position(uint8_t pos){
 
     double u = pid_regulator_get_u(set_point, encoder);
 
+
     if(u > MOTOR_MAX_SPEED){
         u = MOTOR_MAX_SPEED;
     }
     if(u < -MOTOR_MAX_SPEED){
         u = -MOTOR_MAX_SPEED;
     }
+
+    printf("%d\n\r", (int)(u));
+
 
     motor_dac_set_speed(u);
 }
