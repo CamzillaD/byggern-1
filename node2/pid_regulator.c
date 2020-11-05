@@ -9,15 +9,20 @@
 static double m_a0, m_a1, m_a2;
 static double m_last_sample;
 
-void pid_regulator_init(PidConfig pid_config){
-    double k_p = pid_config.k_p;
-    double k_i = pid_config.k_i;
-    double k_d = pid_config.k_d;
-    double t = pid_config.sample_time;
+static double k_p, k_i;
+static double integral = 0;
 
-    m_a0 = k_p + (k_i * t / 2.0) + k_d / 2.0;
-    m_a1 = -k_p + (k_i * t / 2.0) - (2.0 * k_d / t);
-    m_a2 = k_d / t;
+void pid_regulator_init(PidConfig pid_config){
+    k_p = pid_config.k_p;
+    k_i = pid_config.k_i;
+    /* double k_p = pid_config.k_p; */
+    /* double k_i = pid_config.k_i; */
+    /* double k_d = pid_config.k_d; */
+    /* double t = pid_config.sample_time; */
+
+    /* m_a0 = k_p + (k_i * t / 2.0) + k_d / 2.0; */
+    /* m_a1 = -k_p + (k_i * t / 2.0) - (2.0 * k_d / t); */
+    /* m_a2 = k_d / t; */
 
     /* /1* Enable peripheral clock for Timer Counter 0 *1/ */
     /* PMC->PMC_PCER0 = PMC_PCER0_PID27; */
@@ -38,8 +43,13 @@ void pid_regulator_init(PidConfig pid_config){
 }
 
 double pid_regulator_get_u(double set_point, double sample){
-    double num = m_a0 + m_a1 * sample + m_a2 * m_last_sample;
-    double den = 1 - sample;
-    m_last_sample = sample;
-    return num * (set_point - sample) / den;
+    double error = set_point - sample;
+    integral += error;
+
+    return error * k_p + k_i * integral;
+
+/*     double num = m_a0 + m_a1 * sample + m_a2 * m_last_sample; */
+/*     double den = 1 - sample; */
+/*     m_last_sample = sample; */
+/*     return num * (set_point - sample) / den; */
 }
