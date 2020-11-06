@@ -15,12 +15,11 @@
 #include "sam.h"
 
 
-int main()
-{
-    motor_dac_init();
+int main(){
+    /* motor_dac_init(); */
     motor_init();
-    motor_turnon();
-    
+    /* motor_turnon(); */
+
 
     SystemInit();
     play_ping_pong_init();
@@ -44,28 +43,28 @@ int main()
     //test.data[7] = 0x5f;
     test.id = 0x09;
     test.data_length = 7;
-   
+
     can_send(&test,0);
     timer_pwm_init();
     //timer_set_duty_cycle(0.5);
 
     CAN_MESSAGE test_broken;
     test.data[0] = 0x00;
-    
-    
+
+
     // LED_init
     REG_PIOA_PER = (PIO_PA19) | (PIO_PA20);
-    REG_PIOA_OER = (PIO_PA19) | (PIO_PA20);   
+    REG_PIOA_OER = (PIO_PA19) | (PIO_PA20);
 
     printf("%x \n\r",REG_PIOD_LOCKSR);
 
-    motor_dac_set_speed(0x00);
+    /* motor_dac_set_speed(0x00); */
 
-    motor_reset_encoder();
+    /* motor_reset_encoder(); */
 
     ir_adc_init();
-    motor_encoder_init();
-    
+    /* motor_encoder_init(); */
+
     solenoid_init();
 
     //pid_regulator_init(0.5, 0, 10);
@@ -86,9 +85,9 @@ int main()
 
 
    // printf("%d \n\r", motor_read_encoder());
-    
 
-   //  Funksjon for å teste system med solenoide og (motor) 
+
+   //  Funksjon for å teste system med solenoide og (motor)
 
 
         if (can_receive(&test_broken, 0)){
@@ -105,7 +104,7 @@ int main()
             }
         }
 
-        
+
 
 
 /*              styring av servo med joystick fra koden over
@@ -113,7 +112,7 @@ int main()
                 float b = 255;
                 float value2 = test_broken.data[1] /255.0;
                 timer_set_duty_cycle(value2);
-            
+
 
 
      REG_PIOC_SODR = PIO_SODR_P12;
@@ -137,13 +136,13 @@ int main()
     }
 
     */
-    
+
         //motor_dac_send(0xaaaa);
         //uint32_t score = play_ping_pong_read_score();
         //printf("%d.%2d s\n\r", score/4,25* (score % 4));
-       
+
        /*
-       
+
         if(ir_beam_broken()){
             test_broken.data[0] = ir_beam_broken();
             test_broken.data[1] = play_ping_pong_read_score();
@@ -157,7 +156,7 @@ int main()
         printf("%d \n\r", ir_beam_broken());
 
         */
-     
+
     /*
         printf("%x \n\r", CAN0->CAN_SR);
         REG_PIOA_SODR = (PIO_PA19) | (PIO_PA20);
@@ -167,6 +166,5 @@ int main()
         printf("%4x \n\r", timer_read_cv());
 
         */
-        }
-
+    }
 }

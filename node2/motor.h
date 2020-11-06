@@ -1,29 +1,22 @@
 #ifndef MOTOR_H
 #define MOTOR_H
-
 #include <stdint.h>
-#include "sam.h"
-#include "pid_regulator.h"
-
-void motor_dac_init();
-
-void motor_dac_set_speed(int16_t data);
 
 void motor_init();
 
-void motor_turnon();
+void motor_command_speed(int16_t speed);
 
-void motor_turnoff();
+/**
+ * @brief Command motor position.
+ *
+ * Range: [-100, 100], where -100 is all the way to
+ * the left; 100 is all the way to the right, and 0
+ * is the neutral position.
+ *
+ * @param position Commanded position.
+ */
+void motor_command_position(int16_t position);
 
-void delay(uint32_t ms);
-
-void motor_reset_encoder();
-
-void motor_encoder_init();
-
-void motor_go_to_position(uint8_t pos);
-
-uint16_t motor_read_encoder();
-
+uint16_t motor_encoder_read();
 
 #endif
