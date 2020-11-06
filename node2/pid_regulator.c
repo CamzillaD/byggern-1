@@ -12,7 +12,7 @@ Pid pid_new(){
     return pid;
 }
 
-double pid_get_u(Pid * p_pid, double set_point, double sample){
+double pid_step(Pid * p_pid, double set_point, double sample){
     double error = set_point - sample;
 
     /* Proportional */

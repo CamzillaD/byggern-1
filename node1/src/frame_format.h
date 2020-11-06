@@ -10,4 +10,6 @@ void frame_button_send(HidButton button);
 
 void frame_slider_send(HidSlider slider);
 
+void frame_start_game_send();
+
 #endif

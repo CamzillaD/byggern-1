@@ -117,8 +117,8 @@ void motor_command_position(int16_t position){
     double sample = motor_encoder_read();
 
     /* Account for inaccuracies after encoder reset */
-    if( encoder > m_encoder_max_value){
-        encoder = 0.0;
+    if(sample > m_encoder_max_value){
+        sample = 0.0;
     }
 
     double u = pid_step(&m_position_pid, set_point, sample);
