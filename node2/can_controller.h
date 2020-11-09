@@ -6,7 +6,7 @@
  * For use in TTK4155 Embedded and Industrial Computer Systems Design
  * NTNU - Norwegian University of Science and Technology
  *
- */ 
+ */
 
 
 #ifndef CAN_CONTROLLER_H_
