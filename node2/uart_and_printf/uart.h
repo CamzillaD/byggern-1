@@ -7,7 +7,7 @@
  * NTNU - Norwegian University of Science and Technology
  *
  * A simple interface for receiving and transmitting characters to a computer using UART via the on board USB-connector
- */ 
+ */
 
 
 #ifndef UART_H_
@@ -16,7 +16,7 @@
 #include <stdint.h>
 #define UART_RINGBUFFER_SIZE 64
 /*
- * Ringbuffer for receiving characters from  
+ * Ringbuffer for receiving characters from
  */
 typedef struct uart_ringbuffer_t
 {
@@ -25,7 +25,7 @@ typedef struct uart_ringbuffer_t
 	} uart_ringbuffer;
 
 
-void configure_uart(void);
+void uart_init();
 
 int uart_getchar(uint8_t *c);
 
