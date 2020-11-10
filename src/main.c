@@ -11,9 +11,7 @@
 #include "touch_button.h"
 #include "uart.h"
 
-
-#define F_CPU 16000000ul
-#include <util/delay.h>
+#include <stdint.h>
 
 
 static void m_show_menu(){
@@ -31,18 +29,13 @@ static void m_show_menu(){
         if(network_read_game_start()){
             return;
         }
+
+        can_clear_receive_queue();
     }
 }
 
 static void m_play_game(){
     network_write_show_game();
-
-    /* while(1){ */
-    /*     connection_indicator_turn_on(); */
-    /*     _delay_ms(1000); */
-    /*     connection_indicator_turn_off(); */
-    /*     _delay_ms(1000); */
-    /* } */
 
     Joystick left, right;
 
@@ -94,6 +87,7 @@ static void m_play_game(){
 
 static void m_show_score(){
     network_write_show_score();
+    can_clear_receive_queue();
 }
 
 int main(){
