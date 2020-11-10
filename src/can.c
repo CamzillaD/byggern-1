@@ -202,3 +202,7 @@ uint8_t can_read(CanFrame * p_frame){
 
     return 0;
 }
+
+void can_clear_receive_queue(){
+    m_can_tail = m_can_head;
+}

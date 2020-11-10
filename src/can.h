@@ -70,4 +70,14 @@ uint8_t can_write(const CanFrame * p_frame);
  */
 uint8_t can_read(CanFrame * p_frame);
 
+/**
+ * @brief Clear out pending messages from the
+ * application receive queue.
+ *
+ * This is useful in cases where no CAN messages are
+ * expected by the application, but reception has to
+ * remain on for bus monitoring.
+ */
+void can_clear_receive_queue();
+
 #endif
