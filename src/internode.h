@@ -61,6 +61,6 @@ void internode_servo(uint8_t servo);
  * @return 1 if the remote detection beam has been
  * broken, otherwise 0.
  */
-uint8_t internode_beam_broken();
+uint8_t internode_end_game();
 
 #endif

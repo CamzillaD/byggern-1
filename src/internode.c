@@ -3,7 +3,6 @@
 
 /* Messages this module sends */
 #define INTERNODE_ID_RESET        0x05
-#define INTERNODE_ID_START_GAME   0x08
 #define INTERNODE_ID_SOLENOID     0x18
 #define INTERNODE_ID_POSITION     0x13
 #define INTERNODE_ID_SPEED        0x12
@@ -16,12 +15,6 @@ static CanFrame m_frame;
 
 void internode_reset(){
     m_frame.id = INTERNODE_ID_RESET;
-    m_frame.size = 0;
-    can_write(&m_frame);
-}
-
-void internode_start_game(){
-    m_frame.id = INTERNODE_ID_START_GAME;
     m_frame.size = 0;
     can_write(&m_frame);
 }
