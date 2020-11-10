@@ -23,10 +23,10 @@ static CanFrame m_can_frame;
 static uint8_t m_can_data_head;
 
 void static network_write(uint8_t event, uint8_t value){
-    uart_send(NETWORK_FLAG);
-    uart_send(event);
-    uart_send(value);
-    uart_send(event + value);
+    uart_write(NETWORK_FLAG);
+    uart_write(event);
+    uart_write(value);
+    uart_write(event + value);
 }
 
 void static network_enact(){
@@ -73,7 +73,7 @@ void static network_enact(){
 }
 
 ISR(USART0_RXC_vect){
-    uint8_t byte = uart_recv();
+    uint8_t byte = uart_read();
 
     switch(m_await){
         case NETWORK_AWAIT_FLAG:
@@ -101,7 +101,10 @@ ISR(USART0_RXC_vect){
     }
 }
 
-void network_write_joystick(Joystick * p_left, Joystick * p_right){
+void network_write_joystick(
+    const Joystick * p_left,
+    const Joystick * p_right
+){
     network_write(NETWORK_EVENT_JOYSTICK_LH, p_left->x);
     network_write(NETWORK_EVENT_JOYSTICK_LV, p_left->y);
     if(p_left->position_changed){
@@ -129,12 +132,4 @@ void network_write_can_message(const CanFrame * p_frame){
     }
 
     network_write(NETWORK_EVENT_CAN_COMMIT, 0x01);
-}
-
-void network_write_can_interrupt(){
-    network_write(NETWORK_EVENT_CAN_INTERRUPT, 0x01);
-}
-
-void network_write_generic(uint8_t value){
-    network_write(NETWORK_EVENT_GENERIC, value);
 }

@@ -7,8 +7,6 @@
 #include "connection_indicator.h"
 
 ISR(INT2_vect){
-    network_write_can_interrupt();
-    connection_indicator_turn_on();
 }
 
 void can_init(){
@@ -23,24 +21,31 @@ void can_init(){
     EMCUCR &= ~(1 << ISC2);
 
     /* Enable INT2 interrupt */
-    GICR |= (1 << INT2);
+    /* GICR |= (1 << INT2); */
 
 
     /* Enter configuration mode */
     mcp2518fd_sfr_write(MCP_SFR_C1CON(3), 0x04);
 
+    /* Enable GPIO0 and GPIO1 (Disable ~INT0 and ~INT1) */
+    mcp2518fd_sfr_write(MCP_SFR_IOCON(3), 0x03);
+    /* Use GPIO0 and GPIO1 as output */
+    mcp2518fd_sfr_write(MCP_SFR_IOCON(0), 0x00);
+    /* Enable external transceiver (drive GPIO0 low) */
+    mcp2518fd_sfr_write(MCP_SFR_IOCON(1), 0x02);
+
     /* Grab clock signal directly from external oscillator */
     mcp2518fd_sfr_write(MCP_SFR_OSC(0), 0x00);
 
     /* Nominal bit time configuration */
-    /* 125 kbps -> TQ = 500 ns, 10 system clock prescaler */
-    mcp2518fd_sfr_write(MCP_SFR_C1NBTCFG(3), 9);
-    /* Nominal bit time: 13 TQ on TSEG1 */
-    mcp2518fd_sfr_write(MCP_SFR_C1NBTCFG(2), 12);
-    /* Nominal bit time: 2 TQ on TSEG2 */
-    mcp2518fd_sfr_write(MCP_SFR_C1NBTCFG(1), 1);
-    /* Nominal bit time: 3 TQ on SJW */
-    mcp2518fd_sfr_write(MCP_SFR_C1NBTCFG(0), 2);
+    /* 125 kbps, 50 ns TQ => 1 system clock prescaler */
+    mcp2518fd_sfr_write(MCP_SFR_C1NBTCFG(3), 0);
+    /* Nominal bit time: 150 TQ on TSEG1 */
+    mcp2518fd_sfr_write(MCP_SFR_C1NBTCFG(2), 149);
+    /* Nominal bit time: 9 TQ on TSEG2 */
+    mcp2518fd_sfr_write(MCP_SFR_C1NBTCFG(1), 8);
+    /* Nominal bit time: SJW same as TSEG2 */
+    mcp2518fd_sfr_write(MCP_SFR_C1NBTCFG(0), 8);
 
     /* Data bit time configuration */
     /* mcp2518fd_sfr_write(MCP_SFR_C1DBTCFG(...), ...); */
@@ -82,10 +87,13 @@ void can_init(){
     mcp2518fd_sfr_write(MCP_SFR_C1INT(2), 0x01);
 
     /* Internal loop-back mode */
-    mcp2518fd_sfr_write(MCP_SFR_C1CON(3), 0x02);
+    /* mcp2518fd_sfr_write(MCP_SFR_C1CON(3), 0x02); */
+
+    /* External loop-back mode */
+    /* mcp2518fd_sfr_write(MCP_SFR_C1CON(3), 0x05); */
 
     /* CAN 2.0 Normal mode */
-    /* mcp2518fd_sfr_write(MCP_SFR_C1CON(3), 0x06); */
+    mcp2518fd_sfr_write(MCP_SFR_C1CON(3), 0x06);
 }
 
 uint8_t can_write(const CanFrame * p_frame){

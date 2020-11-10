@@ -1,3 +1,8 @@
+/**
+ * @file spi.h
+ *
+ * @brief SPI module.
+ */
 #ifndef SPI_H
 #define SPI_H
 #include <stdint.h>

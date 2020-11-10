@@ -8,6 +8,8 @@
 #include "joystick.h"
 #include "touch_button.h"
 #include "connection_indicator.h"
+#include "internode.h"
+#include "score_counter.h"
 
 #define F_CPU 16000000ul
 #include <util/delay.h>
@@ -39,8 +41,9 @@ int main(){
     mcp2518fd_init();
     can_init();
 
-    connection_indicator_init();
-    connection_indicator_turn_off();
+    score_counter_init();
+
+    /* connection_indicator_turn_off(); */
 
     Joystick left, right;
 
@@ -54,7 +57,69 @@ int main(){
 
     sei();
 
+    score_counter_start();
+
+    while(1){
+        uint8_t error = can_read(&can_read_frame);
+
+        if(!error && can_read_frame.id == 0x09){
+            uint16_t score = score_counter_end();
+
+            can_read_frame.size = 2;
+            can_read_frame.buffer[0] = (score >> 8);
+            can_read_frame.buffer[1] = score;
+
+            network_write_can_message(&can_read_frame);
+        }
+    }
+
     can_write_frame.size = 2;
+
+    uint8_t left_count = 0;
+    uint8_t right_count = 0;
+    uint8_t send = 0;
+
+    while(1){
+        joystick_read(&left, &right);
+
+        if(left.position_changed){
+            if(left.position == JOYSTICK_UP){
+                left_count++;
+            }
+            if(left.position == JOYSTICK_DOWN){
+                left_count--;
+            }
+
+            send = 1;
+        }
+
+        if(right.position_changed){
+            if(right.position == JOYSTICK_UP){
+                right_count++;
+            }
+            if(right.position == JOYSTICK_DOWN){
+                right_count--;
+            }
+
+            send = 1;
+        }
+
+        if(send){
+            can_write_frame.id = 16;
+            can_write_frame.size = 2;
+            can_write_frame.buffer[0] = left_count;
+            can_write_frame.buffer[1] = right_count;
+            can_write(&can_write_frame);
+        }
+
+        send = 0;
+
+        uint8_t error = can_read(&can_read_frame);
+
+        if(!error){
+            network_write_can_message(&can_read_frame);
+        }
+    }
 
     while(1){
         can_write(&can_write_frame);
@@ -71,9 +136,19 @@ int main(){
 
         joystick_read(&left, &right);
 
-        network_write_joystick(&left, &right);
+        if(left.position_changed){
+            network_write_joystick(&left, &right);
+        }
 
-        _delay_ms(50);
+        if(right.position_changed){
+            can_write_frame.id = 0x10;
+            can_write_frame.size = 2;
+            can_write_frame.buffer[0] = 100;
+            can_write_frame.buffer[1] = 100;
+            can_write(&can_write_frame);
+        }
+
+        _delay_ms(500);
     }
 
     return 0;

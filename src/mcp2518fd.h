@@ -1,3 +1,8 @@
+/**
+ * @file mcp2518fd.h
+ *
+ * @brief Driver for the MCP2518FD.
+ */
 #ifndef MCP2518FD_H
 #define MCP2518FD_H
 #include <stdint.h>
@@ -42,14 +47,73 @@
 #define MCP_SFR_C1MASK(n, byte) (0x1f4 + 8 * n + byte)
 
 
+/**
+ * @brief Initialize the MCP2518FD chip to serve in CAN 2.0
+ * mode, without supporting Remote Frames, Extended Identifiers,
+ * or Flexible Datarate (FD).
+ *
+ * @warning The MCP2518FD is operated via SPI. Hence, a call
+ * to @p spi_init must be made before invoking this function.
+ */
 void mcp2518fd_init();
 
+/**
+ * @brief Read the MCP2518FD special function register (SFR)
+ * given by address @p address.
+ *
+ * @param address Address of SFR to be read.
+ *
+ * @return Contents of SFR specified by @p address.
+ */
 uint8_t mcp2518fd_sfr_read(uint16_t address);
 
+/**
+ * @brief Write the MCP2518FD special function register (SFR)
+ * given by address @p address with the data given by @p data.
+ *
+ * @param address Address of SFR to be written.
+ * @param data Data to write into specified SFR.
+ */
 void mcp2518fd_sfr_write(uint16_t address, uint8_t data);
 
+/**
+ * @brief Read random access memory (RAM) contents off the
+ * MCP2518FD chip. A whole word (4 bytes) is read with each
+ * call to this function.
+ *
+ * @param address Address of RAM location to read from.
+ * @param[out] p_word Pointer to a buffer where the contents
+ * of the RAM word will be placed after they are read from
+ * the MCP2518FD.
+ *
+ * @warning @p p_word must point to a buffer of at least 4
+ * bytes, as this function always reads one full word (4 bytes).
+ *
+ * @warning The MCP2518FD can only do word aligned RAM
+ * accesses. Hence, @p address must specify a valid word
+ * boundary.
+ */
 void mcp2518fd_mem_read(uint16_t address, uint8_t * p_word);
 
+/**
+ * @brief Write a random access memory (RAM) word into the
+ * location specified by @p address. Data is read from the
+ * buffer pointed to by @p p_word.
+ *
+ * @param address Address of RAM location to write to.
+ * @param[in] p_word Pointer to a buffer where data will be
+ * taken from and written into the MCP2518FD RAM.
+ *
+ * @warning A whole word (4 bytes) is always written by this
+ * function. As such, @p p_word must point to a buffer of at
+ * least 4 valid bytes. Otherwise, the MCP2518FD RAM might
+ * be corrupted - and the call might trigger a reset on
+ * microcontrollers with a memory protection unit (MPU).
+ *
+ * @warning The MCP2518FD can only do word aligned RAM
+ * accesses. Hence, @p address must specify a valid word
+ * boundary.
+ */
 void mcp2518fd_mem_write(uint16_t address, const uint8_t * p_word);
 
 #endif

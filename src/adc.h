@@ -1,3 +1,8 @@
+/**
+ * @file adc.h
+ *
+ * @brief ADC module.
+ */
 #ifndef ADC_H
 #define ADC_H
 #include <stdint.h>

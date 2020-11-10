@@ -1,3 +1,8 @@
+/**
+ * @file touch_button.h
+ *
+ * @brief Touch Button interface module.
+ */
 #ifndef TOUCH_BUTTON_H
 #define TOUCH_BUTTON_H
 #include <stdint.h>

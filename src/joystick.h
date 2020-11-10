@@ -1,3 +1,8 @@
+/**
+ * @file joystick.h
+ *
+ * @brief Joystick module.
+ */
 #ifndef JOYSTICK_H
 #define JOYSTICK_H
 #include <stdint.h>

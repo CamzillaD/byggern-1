@@ -16,11 +16,11 @@ void uart_init(){
     UCSR0B = (1 << RXEN0) | (1 << TXEN0) | (1 << RXCIE0);
 }
 
-void uart_send(uint8_t byte){
+void uart_write(uint8_t byte){
     while(!(UCSR0A & (1<<UDRE0)));
     UDR0 = byte;
 }
 
-uint8_t uart_recv(){
+uint8_t uart_read(){
     return UDR0;
 }

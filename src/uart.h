@@ -1,3 +1,8 @@
+/**
+ * @file uart.h
+ *
+ * @brief UART interface module.
+ */
 #ifndef UART_H
 #define UART_H
 #include <stdint.h>
@@ -23,7 +28,7 @@ void uart_init();
  *
  * @param byte Byte to be sent by the UART.
  */
-void uart_send(uint8_t byte);
+void uart_write(uint8_t byte);
 
 /**
  * @brief Block until a byte is received by the UART link,
@@ -31,6 +36,6 @@ void uart_send(uint8_t byte);
  *
  * @return Byte received by the UART.
  */
-uint8_t uart_recv();
+uint8_t uart_read();
 
 #endif
