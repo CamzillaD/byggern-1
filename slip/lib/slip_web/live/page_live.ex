@@ -18,7 +18,8 @@ defmodule SlipWeb.PageLive do
       sub_menu: sub_menu,
       in_main_menu: in_main?,
       player: player,
-      score: score
+      score: score,
+      defer_menu: false
     )
 
     {:ok, new_socket}
@@ -39,8 +40,34 @@ defmodule SlipWeb.PageLive do
     {:noreply, new_socket}
   end
 
-  def handle_info({:show, state}, socket) do
-    {:noreply, assign(socket, :state, state)}
+  def handle_info({:show, :menu}, socket) do
+    unless socket.assigns.defer_menu do
+      {:noreply, assign(socket, :state, :menu)}
+      else
+      {:noreply, socket}
+    end
+  end
+
+  def handle_info({:show, :game}, socket) do
+    {:noreply, assign(socket, :state, :game)}
+  end
+
+  def handle_info({:show, :score}, socket) do
+    :timer.send_after 3000, self(), :return_to_menu
+
+    new_socket = socket
+      |> assign(:state, :score)
+      |> assign(:defer_menu, true)
+
+    {:noreply, new_socket}
+  end
+
+  def handle_info(:return_to_menu, socket) do
+    new_socket = socket
+      |> assign(:state, :menu)
+      |> assign(:defer_menu, false)
+
+    {:noreply, new_socket}
   end
 
   def handle_info({:player, player}, socket) do

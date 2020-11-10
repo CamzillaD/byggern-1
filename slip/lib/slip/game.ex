@@ -184,6 +184,7 @@ defmodule Slip.Game do
 
   def handle_cast(:score_commit, state) do
     PubSub.broadcast Slip.PubSub, "slip", {:score, state.score}
+    {:noreply, state}
   end
 
   def handle_cast({:show, show}, state) do
