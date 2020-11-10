@@ -158,6 +158,7 @@ void network_write_can_message(
 void network_write_game_score(uint16_t score){
     network_write(NETWORK_EVENT_SCORE_LOW, (uint8_t)(score));
     network_write(NETWORK_EVENT_SCORE_HIGH, (uint8_t)(score >> 8));
+    network_write(NETWORK_EVENT_SCORE_COMMIT, 0x01);
 }
 
 uint8_t network_read_game_start(){

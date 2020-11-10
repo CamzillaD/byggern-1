@@ -18,6 +18,7 @@ typedef enum {
     /* Slave to host */
     NETWORK_EVENT_SCORE_LOW      = 0x26,
     NETWORK_EVENT_SCORE_HIGH     = 0x27,
+    NETWORK_EVENT_SCORE_COMMIT   = 0x28,
     NETWORK_EVENT_JOYSTICK_LH    = 0x31,
     NETWORK_EVENT_JOYSTICK_LV    = 0x32,
     NETWORK_EVENT_JOYSTICK_LP    = 0x33,

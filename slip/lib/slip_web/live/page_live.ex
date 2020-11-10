@@ -47,6 +47,10 @@ defmodule SlipWeb.PageLive do
     {:noreply, assign(socket, :player, player)}
   end
 
+  def handle_info({:score, score}, socket) do
+    {:noreply, assign(socket, :score, score)}
+  end
+
   def handle_info(_, socket) do
     {:noreply, socket}
   end

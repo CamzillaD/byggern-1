@@ -12,6 +12,7 @@ defmodule Slip.Link do
 
   @event_score_low 0x26
   @event_score_high 0x27
+  @event_score_commit 0x28
 
   @event_joystick_lh 0x31
   @event_joystick_lv 0x32
@@ -206,6 +207,9 @@ defmodule Slip.Link do
 
       @event_score_high ->
         {true, {:score_high, value}, can}
+
+      @event_score_commit ->
+        {true, :score_commit, can}
 
 
       @event_show_menu ->
