@@ -8,6 +8,10 @@ defmodule Slip.Link do
 
   @event_indicator 0x16
   @event_request_reset 0x17
+  @event_game_start 0x25
+
+  @event_score_low 0x26
+  @event_score_high 0x27
 
   @event_joystick_lh 0x31
   @event_joystick_lv 0x32
@@ -18,6 +22,10 @@ defmodule Slip.Link do
   @event_joystick_rv 0x37
   @event_joystick_rp 0x38
   # @event_joystick_rs 0x39
+
+  @event_show_menu 0x50
+  @event_show_game 0x51
+  @event_show_score 0x52
 
   @event_can_clear   0x40
   @event_can_id_low  0x42
@@ -37,6 +45,10 @@ defmodule Slip.Link do
 
   def set_indicator(on?) do
     GenServer.call __MODULE__, {:indicator, on?}
+  end
+
+  def start_game do
+    GenServer.call __MODULE__, :start_game
   end
 
   def request_slave_reset do
@@ -71,6 +83,11 @@ defmodule Slip.Link do
   def handle_call({:indicator, on?}, _from, %{uart: uart} = state) do
     value = if on?, do: 0x01, else: 0x00
     write uart, @event_indicator, value
+    {:reply, :ok, state}
+  end
+
+  def handle_call(:start_game, _from, %{uart: uart} = state) do
+    write uart, @event_game_start, 0x01
     {:reply, :ok, state}
   end
 
@@ -179,7 +196,26 @@ defmodule Slip.Link do
         {false, nil, %{can | data: [value | can.data]}}
 
       @event_can_commit ->
-        {true, {:can, %{can | data: Enum.reverse(can.data)}}, can}
+        frame = {:can, value, %{can | data: Enum.reverse(can.data)}}
+        {true, frame, can}
+
+
+
+      @event_score_low ->
+        {true, {:score_low, value}, can}
+
+      @event_score_high ->
+        {true, {:score_high, value}, can}
+
+
+      @event_show_menu ->
+        {true, {:show, :menu}, can}
+
+      @event_show_game ->
+        {true, {:show, :game}, can}
+
+      @event_show_score ->
+        {true, {:show, :score}, can}
 
 
       @event_can_interrupt ->

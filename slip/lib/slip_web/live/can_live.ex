@@ -9,8 +9,10 @@ defmodule SlipWeb.CanLive do
     end
 
     new_socket = assign(socket,
-      can_messages_received: 0,
-      last_can_messages: []
+      can_messages_tx: 0,
+      last_tx: [],
+      can_messages_rx: 0,
+      last_rx: []
     )
 
     {:ok, new_socket}
@@ -18,13 +20,27 @@ defmodule SlipWeb.CanLive do
 
   def handle_event("reset", _params, socket) do
     Link.request_slave_reset()
-    {:noreply, socket}
+
+    new_socket = socket
+      |> assign(:can_messages_tx, 0)
+      |> assign(:last_tx, [])
+      |> assign(:can_messages_rx, 0)
+      |> assign(:last_rx, [])
+
+    {:noreply, new_socket}
   end
 
-  def handle_info({:can, can}, socket) do
+  def handle_info({:can, 1, can}, socket) do
     new_socket = socket
-      |> update(:can_messages_received, &(&1 + 1))
-      |> update(:last_can_messages, &(add_can_message &1, can))
+      |> update(:can_messages_tx, &(&1 + 1))
+      |> update(:last_tx, &(add_can_message &1, can))
+    {:noreply, new_socket}
+  end
+
+  def handle_info({:can, 0, can}, socket) do
+    new_socket = socket
+      |> update(:can_messages_rx, &(&1 + 1))
+      |> update(:last_rx, &(add_can_message &1, can))
     {:noreply, new_socket}
   end
 
@@ -34,6 +50,6 @@ defmodule SlipWeb.CanLive do
 
   defp add_can_message(messages, new) do
     [new | messages]
-    |> Enum.take(4)
+    |> Enum.take(2)
   end
 end

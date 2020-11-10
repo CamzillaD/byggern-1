@@ -8,12 +8,17 @@ defmodule SlipWeb.PageLive do
       PubSub.subscribe(Slip.PubSub, "slip")
     end
 
+    state = Game.get_state()
     {menu, sub_menu, in_main?} = Game.get_menu()
+    {player, score} = Game.get_game()
 
     new_socket = assign(socket,
+      state: state,
       menu: menu,
       sub_menu: sub_menu,
-      in_main_menu: in_main?
+      in_main_menu: in_main?,
+      player: player,
+      score: score
     )
 
     {:ok, new_socket}
@@ -32,6 +37,14 @@ defmodule SlipWeb.PageLive do
       |> assign(:in_main_menu, in_main?)
 
     {:noreply, new_socket}
+  end
+
+  def handle_info({:show, state}, socket) do
+    {:noreply, assign(socket, :state, state)}
+  end
+
+  def handle_info({:player, player}, socket) do
+    {:noreply, assign(socket, :player, player)}
   end
 
   def handle_info(_, socket) do

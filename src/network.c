@@ -22,6 +22,8 @@ static uint8_t m_read_value;
 static CanFrame m_can_frame;
 static uint8_t m_can_data_head;
 
+static uint8_t m_request_game_start = 0;
+
 void static network_write(uint8_t event, uint8_t value){
     uart_write(NETWORK_FLAG);
     uart_write(event);
@@ -43,6 +45,10 @@ void static network_enact(){
         case NETWORK_EVENT_REQUEST_RESET:
             wdt_enable(WDTO_15MS);
             while(1);
+            break;
+
+        case NETWORK_EVENT_GAME_START:
+            m_request_game_start = 1;
             break;
 
         case NETWORK_EVENT_CAN_CLEAR:
@@ -101,6 +107,18 @@ ISR(USART0_RXC_vect){
     }
 }
 
+void network_write_show_menu(){
+    network_write(NETWORK_EVENT_SHOW_MENU, 0x01);
+}
+
+void network_write_show_game(){
+    network_write(NETWORK_EVENT_SHOW_GAME, 0x01);
+}
+
+void network_write_show_score(){
+    network_write(NETWORK_EVENT_SHOW_SCORE, 0x01);
+}
+
 void network_write_joystick(
     const Joystick * p_left,
     const Joystick * p_right
@@ -118,7 +136,10 @@ void network_write_joystick(
     }
 }
 
-void network_write_can_message(const CanFrame * p_frame){
+void network_write_can_message(
+    const CanFrame * p_frame,
+    uint8_t this_node_origin
+){
     uint8_t id_low = (uint8_t)(p_frame->id);
     uint8_t id_high = (uint8_t)(p_frame->id >> 8);
 
@@ -131,5 +152,18 @@ void network_write_can_message(const CanFrame * p_frame){
         network_write(NETWORK_EVENT_CAN_DATA, p_frame->buffer[i]);
     }
 
-    network_write(NETWORK_EVENT_CAN_COMMIT, 0x01);
+    network_write(NETWORK_EVENT_CAN_COMMIT, this_node_origin);
+}
+
+void network_write_game_score(uint16_t score){
+    network_write(NETWORK_EVENT_SCORE_LOW, (uint8_t)(score));
+    network_write(NETWORK_EVENT_SCORE_HIGH, (uint8_t)(score >> 8));
+}
+
+uint8_t network_read_game_start(){
+    if(m_request_game_start){
+        m_request_game_start = 0;
+        return 1;
+    }
+    return 0;
 }

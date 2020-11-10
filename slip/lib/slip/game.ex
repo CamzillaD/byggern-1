@@ -1,5 +1,6 @@
 defmodule Slip.Game do
   use GenServer
+  use Bitwise
   alias Slip.Link
   alias Slip.Scores
   alias Phoenix.PubSub
@@ -8,8 +9,20 @@ defmodule Slip.Game do
     GenServer.start_link __MODULE__, :ok, name: __MODULE__
   end
 
+  def get_state do
+    GenServer.call __MODULE__, :get_state
+  end
+
   def get_menu do
     GenServer.call __MODULE__, :get_menu
+  end
+
+  def get_game do
+    GenServer.call __MODULE__, :get_game
+  end
+
+  def set_player(player) do
+    GenServer.cast __MODULE__, {:set_player, player}
   end
 
   def register(message) do
@@ -61,13 +74,13 @@ defmodule Slip.Game do
             %{
               title: "Controller",
               selected: true,
-              effect: fn ->
+              effect: fn -> nil
               end
             },
             %{
               title: "Scores",
               selected: false,
-              effect: fn ->
+              effect: fn -> nil
               end
             }
           ]
@@ -83,13 +96,13 @@ defmodule Slip.Game do
             %{
               title: "Wet Ass Pussy",
               selected: true,
-              effect: fn ->
+              effect: fn -> nil
               end
             },
             %{
               title: "Bend Ova",
               selected: false,
-              effect: fn ->
+              effect: fn -> nil
               end
             }
           ]
@@ -100,10 +113,17 @@ defmodule Slip.Game do
     state = %{
       menu: menu,
       sub_menu: hd(menu).sub_menu,
-      in_main_menu: true
+      in_main_menu: true,
+      show: :menu,
+      player: nil,
+      score: 0
     }
 
     {:ok, state}
+  end
+
+  def handle_call(:get_state, _from, state) do
+    {:reply, state.show, state}
   end
 
   def handle_call(:get_menu, _from, state) do
@@ -116,33 +136,55 @@ defmodule Slip.Game do
     {:reply, {menu, sub_menu, in_main?}, state}
   end
 
-  def handle_cast({:joystick_lp, :left}, state) do
+  def handle_call(:get_game, _from, %{player: p, score: s} =  state) do
+    {:reply, {p, s}, state}
+  end
+
+  def handle_cast({:set_player, player}, state) do
+    PubSub.broadcast Slip.PubSub, "slip", {:player, player}
+    {:noreply, %{state | player: player, score: 0}}
+  end
+
+  def handle_cast({:joystick_lp, :left}, %{show: :menu} = state) do
     new_state = %{state | in_main_menu: true}
     PubSub.broadcast Slip.PubSub, "slip", {:new, new_state}
     {:noreply, new_state}
   end
 
-  def handle_cast({:joystick_lp, :right}, state) do
+  def handle_cast({:joystick_lp, :right}, %{show: :menu} = state) do
     new_state = change_menu_or_activate(state)
     PubSub.broadcast Slip.PubSub, "slip", {:new, new_state}
     {:noreply, new_state}
   end
 
-  def handle_cast({:joystick_lp, :up}, state) do
+  def handle_cast({:joystick_lp, :up}, %{show: :menu} = state) do
     new_state = select_prev_menu_item(state)
     PubSub.broadcast Slip.PubSub, "slip", {:new, new_state}
     {:noreply, new_state}
   end
 
-  def handle_cast({:joystick_lp, :down}, state) do
+  def handle_cast({:joystick_lp, :down}, %{show: :menu} = state) do
     new_state = select_next_menu_item(state)
     PubSub.broadcast Slip.PubSub, "slip", {:new, new_state}
     {:noreply, new_state}
   end
 
-  def handle_cast({:can, can}, state) do
-    PubSub.broadcast Slip.PubSub, "slip", {:can, can}
+  def handle_cast({:can, origin, can}, state) do
+    PubSub.broadcast Slip.PubSub, "slip", {:can, origin, can}
     {:noreply, state}
+  end
+
+  def handle_cast({:score_low, byte}, state) do
+    {:noreply, %{state | score: state.score ||| byte}}
+  end
+
+  def handle_cast({:score_high, byte}, state) do
+    {:noreply, %{state | score: state.score ||| (byte <<< 8)}}
+  end
+
+  def handle_cast({:show, show}, state) do
+    PubSub.broadcast Slip.PubSub, "slip", {:show, show}
+    {:noreply, %{state | show: show}}
   end
 
   def handle_cast(_, state) do

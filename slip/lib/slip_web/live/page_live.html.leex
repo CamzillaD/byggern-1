@@ -1,31 +1,102 @@
-<section class="menu">
-  <div class="menu-column <%= if @in_main_menu, do: "active" %>">
-    <%= for item <- @menu do %>
-      <h1 class="menu-entry <%= if item.selected, do: "active" %>">
-        <%= item.title %>
-      </h1>
-    <% end %>
-  </div>
-
-  <div class="menu-column-separator">
-  </div>
-
-  <div class="menu-column <%= if !@in_main_menu, do: "active" %>">
-    <div class="menu-title">
-      <%= @sub_menu.title %>
+<%= if @state == :menu do %>
+  <section class="menu">
+    <div class="menu-column <%= if @in_main_menu, do: "active" %>">
+      <%= for item <- @menu do %>
+        <h1 class="menu-entry <%= if item.selected, do: "active" %>">
+          <%= item.title %>
+        </h1>
+      <% end %>
     </div>
 
-    <%= for item <- @sub_menu.items do %>
-      <h1 class="menu-entry <%= if item.selected, do: "active" %>">
-        <%= item.title %>
-      </h1>
-    <% end %>
-  </div>
-</section>
+    <div class="menu-column-separator">
+    </div>
+
+    <div class="menu-column <%= if !@in_main_menu, do: "active" %>">
+      <div class="menu-title">
+        <%= @sub_menu.title %>
+      </div>
+
+      <%= for item <- @sub_menu.items do %>
+        <h1 class="menu-entry <%= if item.selected, do: "active" %>">
+          <%= item.title %>
+        </h1>
+      <% end %>
+    </div>
+  </section>
+<% end %>
+
+<%= if @state == :game do %>
+  <section class="playing">
+    <div class="playing-as">
+      Playing as:
+    </div>
+    <div class="playing-name">
+      <%= @player %>
+    </div>
+  </section>
+<% end %>
+
+<%= if @state == :score do %>
+<% end %>
 
 
 
 <style>
+<%# Playing %>
+.playing {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+}
+
+.playing > * {
+  text-transform: uppercase;
+  font-family: "Bebas Neue";
+  font-size: 3em;
+}
+
+.playing-as {
+  color: #2a9d8f;
+}
+
+.playing-name {
+  font-size: 4.8em;
+  <%# transition: font-size 0.2s ease; %>
+  animation-name: bounce-rotate;
+  animation-duration: 1.7s;
+  animation-iteration-count: infinite;
+  animation-timing-function: ease-in-out;
+}
+
+@keyframes bounce-rotate {
+  from {
+    font-size: 5.3em;
+  }
+
+  10% {
+    font-size: 7.4em;
+  }
+
+  20% {
+    font-size: 5.3em;
+  }
+
+  30% {
+    font-size: 7.4em;
+  }
+
+  40% {
+    font-size: 5.3em;
+  }
+
+  to {
+    font-size: 5.3em;
+  }
+}
+
+<%# Menu %>
 .menu {
   margin-top: 4em;
   width: 100%;

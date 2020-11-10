@@ -1,10 +1,10 @@
 <section class="top-bar">
-<h2>CAN RX: <%= @can_messages_received %></h2>
+<h2>CAN TX: <%= @can_messages_tx %></h2>
 <button phx-click="reset">Reset Controller</button>
 </section>
 
 <section class="can-message-container">
-  <%= for can <- @last_can_messages do %>
+  <%= for can <- @last_tx do %>
     <div class="can-message">
       <div class="can-message-header">
         <div>
@@ -30,12 +30,49 @@
   <% end %>
 </section>
 
+<div class="can-message-container-separator">
+</div>
+
+<section class="top-bar">
+<h2>CAN RX: <%= @can_messages_rx %></h2>
+</section>
+
+<section class="can-message-container">
+  <%= for can <- @last_rx do %>
+    <div class="can-message">
+      <div class="can-message-header">
+        <div>
+          ID: <span class="highlight"><%= can.id %></span>
+        </div>
+        <div>
+          Size: <span class="highlight"><%= can.size %></span>
+        </div>
+      </div>
+
+      <div class="can-message-data">
+        <%= for byte <- can.data do %>
+          <div class="can-message-data-byte">
+            <%= byte
+                |> Integer.to_string(16)
+                |> String.pad_leading(2, "0")
+            %>
+            <span class="shrink">(<%= byte %>)</span>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+</section>
 
 <style>
 .can-message-container {
   text-transform: uppercase;
   font-family: "Bebas Neue";
   font-size: 1.5em;
+}
+
+.can-message-container-separator {
+  margin-top: 2em;
 }
 
 .can-message {
