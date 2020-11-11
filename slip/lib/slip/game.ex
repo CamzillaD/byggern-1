@@ -66,6 +66,15 @@ defmodule Slip.Game do
       },
 
       %{
+        title: "Scores",
+        selected: false,
+        sub_menu: %{
+          title: "See scores:",
+          items: Scores.list_scores()
+        }
+      },
+
+      %{
         title: "Reset",
         selected: false,
         sub_menu: %{
@@ -75,12 +84,22 @@ defmodule Slip.Game do
               title: "Controller",
               selected: true,
               effect: fn -> nil
+                Link.request_slave_reset()
+              end
+            },
+            %{
+              title: "Remote",
+              selected: false,
+              effect: fn ->
+                Link.can_send %{id: 0x05, size: 0, data: []}
               end
             },
             %{
               title: "Scores",
               selected: false,
               effect: fn -> nil
+                Scores.clear_scores()
+                send self(), :reload_scores
               end
             }
           ]
@@ -183,6 +202,8 @@ defmodule Slip.Game do
   end
 
   def handle_cast(:score_commit, state) do
+    Scores.persist_score state.player, state.score
+    send self(), :reload_scores
     PubSub.broadcast Slip.PubSub, "slip", {:score, state.score}
     {:noreply, state}
   end
@@ -196,6 +217,21 @@ defmodule Slip.Game do
     {:noreply, state}
   end
 
+  def handle_info(:reload_scores, %{menu: menu} = state) do
+    new_menu = Enum.map menu, fn entry ->
+      if entry.title == "Scores" do
+        sub_menu = %{
+          title: "See scores:",
+          items: Scores.list_scores()
+        }
+        %{entry | sub_menu: sub_menu}
+      else
+        entry
+      end
+    end
+
+    {:noreply, %{state | menu: new_menu}}
+  end
 
   # Helper functions
 
