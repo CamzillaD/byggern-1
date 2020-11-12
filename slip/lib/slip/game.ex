@@ -113,15 +113,60 @@ defmodule Slip.Game do
           title: "Which song?",
           items: [
             %{
-              title: "Wet Ass Pussy",
+              title: "Stop audio",
               selected: true,
-              effect: fn -> nil
+              effect: fn ->
+                System.cmd "pkill", ["-f", "mpg123"]
+              end
+            },
+            %{
+              title: "Who Are You",
+              selected: false,
+              effect: fn ->
+                System.cmd "pkill", ["-f", "mpg123"]
+                Port.open {:spawn,
+                  "mpg123 music/who_are_you.mp3"
+                }, [:binary]
+              end
+            },
+            %{
+              title: "Wet Ass Pussy",
+              selected: false,
+              effect: fn ->
+                System.cmd "pkill", ["-f", "mpg123"]
+                Port.open {:spawn,
+                  "mpg123 music/wap.mp3"
+                }, [:binary]
               end
             },
             %{
               title: "Bend Ova",
               selected: false,
-              effect: fn -> nil
+              effect: fn ->
+                System.cmd "pkill", ["-f", "mpg123"]
+                Port.open {:spawn,
+                  "mpg123 music/bend_ova.mp3"
+                }, [:binary]
+              end
+            },
+            %{
+              title: "Humble",
+              selected: false,
+              effect: fn ->
+                System.cmd "pkill", ["-f", "mpg123"]
+                Port.open {:spawn,
+                  "mpg123 music/humble.mp3"
+                }, [:binary]
+              end
+            },
+            %{
+              title: "Outta Your Mind",
+              selected: false,
+              effect: fn ->
+                System.cmd "pkill", ["-f", "mpg123"]
+                Port.open {:spawn,
+                  "mpg123 music/outta_your_mind.mp3"
+                }, [:binary]
               end
             }
           ]
