@@ -3,7 +3,6 @@
 #include "uart_and_printf/uart.h"
 #include "uart_and_printf/printf-stdarg.h"
 #include "can_controller.h"
-#include "can_interrupt.h"
 #include "play_ping_pong.h"
 
 #include "timer.h"
@@ -18,7 +17,6 @@
 int main()
 {
     SystemInit();
-    motor_init();
     timer_pwm_init();
     ir_adc_init();
     solenoid_init();
@@ -27,7 +25,7 @@ int main()
     WDT->WDT_MR = WDT_MR_WDDIS; //Disable Watchdog Timer
 
     //CAN_BR = 0x00069333
-    configure_uart();
+    uart_init();
     //0x007f1633
     can_init(0x00290561, 1, 2);
     printf("Mye dyrere enn studentvin\n\r");
@@ -52,13 +50,23 @@ int main()
     test.data[0] = 0x00;
 
 
-    //pid_regulator_init(0.5, 0, 10);
+    Pid pid = pid_new();
+    pid.k_p = 1.0;
+    pid.k_i = 0.05;
+    pid.k_d = 0.0;
+    pid.tau = 0.0;
+    pid.t = 0.001;
+
+    motor_init(pid);
 
     printf("%d \n\r", 22);
     while (1){
 
-        //motor_go_to_position(120);
 
+        //motor_command_position(0);
+        //motor_delay(50000);
+
+    
     /*
         motor_dac_set_speed(0x07);
         delay(50000);
@@ -74,17 +82,29 @@ int main()
 
 
         if (can_receive(&recv_can, 0)){
+
+
             if(recv_can.id == 0x10){
                 float a = recv_can.data[1];
                 float b = 255;
                 float value2 = recv_can.data[1] /255.0;
                 timer_set_duty_cycle(value2);
+                //printf("%d \n\r",value2);
 
+
+                
+                int16_t value = recv_can.data[0];
+                //printf("%d \n\r", value );
+                motor_command_speed(value); 
             }
-            if(recv_can.id == 0x12){
-                int16_t value = recv_can.data[0] - 130;
-                 motor_command_speed(value);
-                 }
+        }
+            
+            //if(recv_can.id == 0x12){
+            //    int16_t value = recv_can.data[0] -130; //-130
+            //    printf("%d \r\n", value);
+            //     motor_command_speed(value);
+            //     } 
+  
 
             if(recv_can.id == 0x11 & recv_can.data[0]){
                 printf("%d \n\r",recv_can.data[0]);
@@ -93,13 +113,13 @@ int main()
             else{
                 solenoid_deactivate();
             }
-        }
+        
 
 
 
 /*        
      REG_PIOC_SODR = PIO_SODR_P12;
-    delay(1000);
+    delay(1000);pid_step(&m_position_pid, set_point, sample);
      REG_PIOC_CODR = PIO_CODR_P12;
     delay(1000);
 */
@@ -130,17 +150,19 @@ int main()
         //uint32_t score = play_ping_pong_read_score();
         //printf("%d.%2d s\n\r", score/4,25* (score % 4));
        
-        ADC->ADC_CR = ADC_CR_START;
-            /*
+        //ADC->ADC_CR = ADC_CR_START;
+         /*   
              if(ir_beam_broken()){
             send_can.data[0] = ir_beam_broken();
             send_can.data[1] = play_ping_pong_read_score();
             can_send(&send_can, 0);
         }
     */
-        
+
+/*
         while (!(ADC->ADC_ISR & ADC_ISR_EOC0)){}
         printf("%d \n\r", ir_beam_broken());
+*/        
     
     /*
         if(ir_beam_broken()){
@@ -148,8 +170,8 @@ int main()
             send_can.data[1] = play_ping_pong_read_score();
             can_send(&send_can, 0);
         }
-   */     
         
+       */ 
 
      
     /*

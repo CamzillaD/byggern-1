@@ -6,6 +6,7 @@
 #include "menu.h"
 #include "frame_format.h"
 
+
 #define F_CPU 4915200UL
 #include <util/delay.h>
 
@@ -34,6 +35,7 @@ int main(){
     display_clear();
     can_init();
 
+
     fdevopen((int (*)(char, FILE*)) uart_send,(int (*)(FILE*)) uart_recv);
 
 
@@ -60,6 +62,7 @@ int main(){
 
         slider = hid_slider_read();
         frame_slider_send(slider);
+       // printf("%d \n\r", slider.left);
 
         _delay_ms(100);
 
@@ -92,6 +95,7 @@ int main(){
         joystick_last_position = joystick.position;
 
         //KAN IKKE LESE HVIS LINJEN ER BRUTT FRA START
+        /*
         if(can_recv(&recv_ir)){
             display_print(7, "Broken", 0);
             printf("%d\n\r", (uint8_t)recv_ir.buffer[1]);
@@ -99,7 +103,8 @@ int main(){
         else {
             display_print(7, "", 0);
         }
-        
+        */
+       
         //printf("0x%2x\n\r", can_test());
         
 
@@ -135,8 +140,8 @@ int main(){
             slider.left,
             slider.right
         );
- 
-        */
+ */
+        
     }
 
     return 0;

@@ -1,5 +1,7 @@
 #include "motor.h"
 #include "sam.h"
+#include "pid_regulator.h"
+#include "real_time.h"
 
 #include "uart_and_printf/printf-stdarg.h"
 
@@ -29,48 +31,30 @@ uint16_t motor_encoder_read(){
 
     REG_PIOD_SODR = PIO_SODR_P0;
 
+    //printf("%d \n\r", encoder);
     return encoder;
 }
 
 static void motor_encoder_calibrate(){
     m_encoder_calibrated = 0;
 
-    uint8_t same_sample_counter = 0;
-    uint16_t encoder = 1;
-    uint16_t last_encoder = 0;
-
-    motor_command_speed(0xff);
-    while(same_sample_counter < 150){
-        encoder = motor_encoder_read();
-        if(encoder == last_encoder){
-            same_sample_counter++;
-        }
-        else{
-            same_sample_counter = 0;
-        }
-    }
-
-    same_sample_counter = 0;
+    motor_command_speed(170);
+    printf("go right \n\r");
+    motor_delay(90000);
 
     /* Reset encoder */
     REG_PIOD_CODR |= PIO_SODR_P1;
     motor_delay(100);
     REG_PIOD_SODR |= PIO_SODR_P1;
 
-    motor_command_speed(0x00);
-    while(same_sample_counter < 150){
-        encoder = motor_encoder_read();
-        if(encoder == last_encoder){
-            same_sample_counter++;
-        }
-        else{
-            same_sample_counter = 0;
-        }
-    }
+    motor_command_speed(95);
+    printf("go left \n\r");
+    motor_delay(75000);
 
     m_encoder_max_value = motor_encoder_read();
 
     motor_command_speed(0x7f);
+    printf("stop \n\r");
 
     m_encoder_calibrated = 1;
 }
@@ -117,11 +101,11 @@ void motor_command_speed(uint8_t speed){
     }
     else if(speed <= 124){
         REG_PIOD_SODR = PIO_SODR_P10;
-        DACC->DACC_CDR = 33 * speed;
+        DACC->DACC_CDR = -33 * speed + 4092;
     }
     else if(speed >= 131){
         REG_PIOD_CODR = PIO_CODR_P10;
-        DACC_DACC_CDR = 33 * speed - 4326;
+        DACC->DACC_CDR = 33 * speed -4323;
     }
 }
 
