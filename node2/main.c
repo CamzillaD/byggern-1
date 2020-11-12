@@ -12,6 +12,7 @@
 #include "solenoid.h"
 #include "pid_regulator.h"
 #include "sam.h"
+#include "pid_regulator_clock.h"
 
 
 int main()
@@ -38,7 +39,6 @@ int main()
     test.data[4] = 0x0e;
     test.data[5] = 0xad;
     test.data[6] = 0xad;
-    //test.data[7] = 0x5f;
     test.id = 0x09;
     test.data_length = 7;
     can_send(&test,0);
@@ -58,14 +58,16 @@ int main()
     pid.t = 0.001;
 
     motor_init(pid);
-
     printf("%d \n\r", 22);
+
+    pid_regulator_clock_enable();
+
     while (1){
+        
 
-
+        continue;
         //motor_command_position(0);
         //motor_delay(50000);
-
     
     /*
         motor_dac_set_speed(0x07);
@@ -83,38 +85,26 @@ int main()
 
         if (can_receive(&recv_can, 0)){
 
-
-            if(recv_can.id == 0x10){
-                float a = recv_can.data[1];
-                float b = 255;
-                float value2 = recv_can.data[1] /255.0;
+            if(recv_can.id == 0x16){
+                float value2 = recv_can.data[0] /255.0;
                 timer_set_duty_cycle(value2);
-                //printf("%d \n\r",value2);
-
-
-                
-                int16_t value = recv_can.data[0];
-                //printf("%d \n\r", value );
-                motor_command_speed(value); 
+                //printf("%d \n\r",recv_can.data[0]);
             }
-        }
             
-            //if(recv_can.id == 0x12){
-            //    int16_t value = recv_can.data[0] -130; //-130
-            //    printf("%d \r\n", value);
-            //     motor_command_speed(value);
-            //     } 
-  
-
-            if(recv_can.id == 0x11 & recv_can.data[0]){
-                printf("%d \n\r",recv_can.data[0]);
+            //slider no work, use joystikck?
+            if(recv_can.id == 0x12){}
+                int16_t value = recv_can.data[0];
+                motor_command_speed(value); 
+                printf("%d \n\r", value );
+            }
+            
+            if(recv_can.id == 0x18 & recv_can.data[0]){
+                //printf("%d \n\r",recv_can.data[0]);
                 solenoid_activate();
             }
             else{
                 solenoid_deactivate();
             }
-        
-
 
 
 /*        
@@ -185,3 +175,4 @@ int main()
         */
     }
 }
+

@@ -9,23 +9,16 @@ static uint16_t m_encoder_max_value;
 static uint8_t m_encoder_calibrated = 0;
 static Pid m_position_pid;
 
-void motor_delay(uint32_t ms_approx){
-    ms_approx *= 139;
-    while(ms_approx--){
-        __asm__("nop;");
-    }
-}
-
 uint16_t motor_encoder_read(){
     uint16_t encoder = 0;
 
     REG_PIOD_CODR = PIO_CODR_P0 | PIO_CODR_P2;
-    motor_delay(1);
+    real_time_delay_ms(1);
 
     encoder |= (REG_PIOC_PDSR & 0x1fe) << 7;
 
     REG_PIOD_SODR = PIO_SODR_P2;
-    motor_delay(1);
+    real_time_delay_ms(1);
 
     encoder |= (REG_PIOC_PDSR & 0x1fe) << 1;
 
@@ -40,16 +33,16 @@ static void motor_encoder_calibrate(){
 
     motor_command_speed(170);
     printf("go right \n\r");
-    motor_delay(90000);
+    real_time_delay_ms(1000);
 
     /* Reset encoder */
     REG_PIOD_CODR |= PIO_SODR_P1;
-    motor_delay(100);
+    real_time_delay_ms(100);
     REG_PIOD_SODR |= PIO_SODR_P1;
 
     motor_command_speed(95);
     printf("go left \n\r");
-    motor_delay(75000);
+    real_time_delay_ms(1000);
 
     m_encoder_max_value = motor_encoder_read();
 
