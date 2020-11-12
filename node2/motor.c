@@ -9,7 +9,7 @@
 static uint16_t m_encoder_max_value;
 static Pid m_position_pid;
 
-static void motor_delay(uint32_t ms_approx){
+void motor_delay(uint32_t ms_approx){
     ms_approx *= 139;
     while(ms_approx--){
         __asm__("nop;");
@@ -18,10 +18,10 @@ static void motor_delay(uint32_t ms_approx){
 
 static void motor_dac_init(){
     PMC->PMC_PCER1 = PMC_PCER1_PID38; //enable clock
-    DACC->DACC_WPMR &= ~DACC_WPMR_WPEN;
+    DACC->DACC_WPMR = 0x44414300;
     DACC->DACC_CHER =DACC_CHER_CH1;
-    DACC->DACC_MR = DACC_MR_USER_SEL_CHANNEL1;
-    DACC->DACC_WPMR = DACC_WPMR_WPEN;
+    DACC->DACC_MR = DACC_MR_USER_SEL_CHANNEL1 ;
+    DACC->DACC_WPMR = 0x44414301;
 }
 
 static void motor_encoder_reset(){
@@ -56,8 +56,8 @@ static void motor_disable(){
 static void motor_position_pid_init(){
     m_position_pid = pid_new();
 
-    m_position_pid.k_p = 1;
-    m_position_pid.k_i = 0.05;
+    m_position_pid.k_p = 100;
+    m_position_pid.k_i = 0.005;
     m_position_pid.k_d = 0.3;
 
     m_position_pid.t = 0.01;
@@ -96,7 +96,6 @@ void motor_init(){
     REG_PIOD_SODR = PIO_SODR_P1; //reset til høy, slik at den ikke resetter
 
     motor_enable();
-
     motor_encoder_init();
 }
 
@@ -109,12 +108,18 @@ void motor_command_speed(int16_t data){
     else{
         REG_PIOD_CODR = PIO_CODR_P10; //går mot høyre
     }
-    DACC->DACC_CDR = (abs(data) << 7);
+
+    data = (abs(data) & 0x0fff) << 4;
+   // printf("%4x %3d \n\r", data, data);
+
+    DACC-> DACC_CDR = data;
+    //(abs(data) << 8);
 }
 
 void motor_command_position(int16_t position){
     double set_point = (m_encoder_max_value / 200.0) * (position + 100);
     double sample = motor_encoder_read();
+    printf("%d \n\r", (uint32_t)(sample));
 
     /* Account for inaccuracies after encoder reset */
     if(sample > m_encoder_max_value){
@@ -130,7 +135,7 @@ uint16_t motor_encoder_read(){
     uint16_t data = 0;
 
     REG_PIOD_CODR |= PIO_SODR_P0; //sets !OE, can read MJ2-pins
-    PIOD->PIO_CODR = PIO_CODR_P0;
+    //PIOD->PIO_CODR = PIO_CODR_P0;
     REG_PIOD_CODR |= PIO_SODR_P2; //sel low
 
     //wait 20 microsek
@@ -145,7 +150,6 @@ uint16_t motor_encoder_read(){
     //toggle !RST to reset encoder
 
     REG_PIOD_SODR |= PIO_SODR_P0; //set OE high
-
 
     return data;
 }

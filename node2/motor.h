@@ -19,4 +19,6 @@ void motor_command_position(int16_t position);
 
 uint16_t motor_encoder_read();
 
+void motor_delay(uint32_t ms_approx);
+
 #endif
