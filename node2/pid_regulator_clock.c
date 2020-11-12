@@ -32,6 +32,8 @@ void pid_regulator_clock_enable(){
 
     /* Enable interrupt on RC compare */
     /* TC1->TC_CHANNEL[0].TC_IER = TC_IER_CPCS; */
+
+    NVIC_EnableIRQ(ID_TC1);
 }
 
 void pid_regulator_clock_disable(){
