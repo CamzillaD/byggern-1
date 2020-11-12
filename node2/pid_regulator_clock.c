@@ -10,11 +10,19 @@ void TC1_Handler(){
 }
 
 void pid_regulator_clock_enable(){
+    /* Peripheral clock prescale 1 */
+    PMC->PMC_PCR = PMC_PCR_EN
+                 | PMC_PCR_CMD
+                 | (ID_TC1 << PMC_PCR_PID_Pos)
+                 ;
+
     /* Enable peripheral power */
-    PMC->PMC_PCER0 = PMC_PCER0_PID28;
+    PMC->PMC_PCER0 = PMC_PCER0_PID30;
+
+    NVIC_EnableIRQ(ID_TC1);
 
     /* Enable peripheral clock */
-    TC1->TC_CHANNEL[0].TC_CCR = TC_CCR_CLKEN | TC_CCR_SWTRG;
+    TC1->TC_CHANNEL[0].TC_CCR = TC_CCR_CLKEN;
 
     /* Master clock / 2, Reset on RC compare */
     TC1->TC_CHANNEL[0].TC_CMR = TC_CMR_TCCLKS_TIMER_CLOCK1
@@ -22,7 +30,7 @@ void pid_regulator_clock_enable(){
                               ;
 
     /* Timer period of 1.0 s */
-     TC1->TC_CHANNEL[0].TC_RC = 0x0280de80; 
+    TC1->TC_CHANNEL[0].TC_RC = 0x0280de80;
 
     /* Timer period of 1.0 ms */
     /* TC1->TC_CHANNEL[0].TC_RC = 42000; */
@@ -33,13 +41,8 @@ void pid_regulator_clock_enable(){
     /* Enable interrupt on RC compare */
     TC1->TC_CHANNEL[0].TC_IER = TC_IER_CPCS;
 
-    NVIC_EnableIRQ(ID_TC1);
-
-    PMC->PMC_PCR = PMC_PCR_EN | PMC_PCR_CMD | (ID_TC1 << PMC_PCR_PID_Pos);
-
-    while(1){
-         printf("%6d\n\r", TC1->TC_CHANNEL[0].TC_CV);
-    }
+    /* Reset and start clock */
+    TC1->TC_CHANNEL[0].TC_CCR = TC_CCR_SWTRG;
 }
 
 void pid_regulator_clock_disable(){
