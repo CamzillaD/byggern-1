@@ -7,4 +7,3 @@ void real_time_delay_ms(uint32_t ms){
 
     while(RTT->RTT_VR < ms * 10);
 }
-
