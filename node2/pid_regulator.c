@@ -9,6 +9,9 @@ Pid pid_new(){
     pid.prev_sample = 0.0;
     pid.prev_error = 0.0;
 
+    /* SysTick at 30 ms period */
+    pid.t = 0.030;
+
     return pid;
 }
 

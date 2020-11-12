@@ -1,13 +1,19 @@
 #include "motor.h"
 #include "sam.h"
 #include "pid_regulator.h"
+#include "pid_regulator_clock.h"
 #include "real_time.h"
 
 #include "uart_and_printf/printf-stdarg.h"
 
 static uint16_t m_encoder_max_value;
 static uint8_t m_encoder_calibrated = 0;
+
 static Pid m_position_pid;
+static double m_position_set_point;
+static double m_position_sample;
+
+static uint8_t m_position_mode_enable = 1;
 
 uint16_t motor_encoder_read(){
     uint16_t encoder = 0;
@@ -56,6 +62,12 @@ static void motor_encoder_calibrate(){
 void motor_init(Pid motor_position_pid){
     m_position_pid = motor_position_pid;
 
+    pid_regulator_clock_init(
+        &m_position_pid,
+        &m_position_set_point,
+        &m_position_sample
+    );
+
     /* Initialize DACC */
     PMC->PMC_PCER1 = PMC_PCER1_PID38;
     DACC->DACC_WPMR &= ~DACC_WPMR_WPEN;
@@ -100,19 +112,20 @@ void motor_command_speed(uint8_t speed){
         REG_PIOD_CODR = PIO_CODR_P10;
         DACC->DACC_CDR = 33 * speed -4323;
     }
+
+    m_position_mode_enable = 0;
 }
 
 void motor_command_position(uint8_t position){
-    double set_point = (m_encoder_max_value / 200.0) * (position + 100);
-    double sample = motor_encoder_read();
-    printf("%d \n\r", (uint32_t)(sample));
+    m_position_set_point = position * m_encoder_max_value / 0xff;
+    m_position_sample = motor_encoder_read();
 
     /* Account for inaccuracies after encoder reset */
-    if(sample > m_encoder_max_value){
-        sample = 0.0;
+    if(m_position_sample > m_encoder_max_value){
+        m_position_sample = 0.0;
     }
 
-    double u = pid_step(&m_position_pid, set_point, sample);
+    motor_command_speed(m_position_pid.u);
 
-    motor_command_speed(u);
+    m_position_mode_enable = 1;
 }
