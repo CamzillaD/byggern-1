@@ -59,7 +59,6 @@ void CAN0_Handler( void )
 		}
 		if(DEBUG_INTERRUPT)printf("\n\r");
 
-		timer_set_duty_cycle((double)message.data[0]/255);
 	}
 	
 	if(can_sr & CAN_SR_MB0)
