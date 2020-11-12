@@ -41,3 +41,4 @@ void frame_slider_send(HidSlider slider){
 
     can_send(&m_frame);
 }
+
