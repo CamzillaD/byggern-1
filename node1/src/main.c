@@ -4,12 +4,11 @@
 #include "display.h"
 #include "can.h"
 #include "menu.h"
-#include "frame_format.h"
-
+#include "internode.h"
 
 #define F_CPU 4915200UL
-#include <util/delay.h>
 
+#include <util/delay.h>
 #include <stdio.h>
 #include <avr/interrupt.h>
 
@@ -42,7 +41,7 @@ int main(){
     volatile uint8_t * disp_c = (volatile uint8_t *)0x1000;
     volatile uint8_t * disp_d = (volatile uint8_t *)0x1200;
 
-    printf("Node1 fungerer \n\r");
+    printf("Node1 fungerer ikke \n\r");
  
     const MenuItem * p_menu_item = menu_root_node();
     uint8_t menu_selected_item = 0;
@@ -56,18 +55,18 @@ int main(){
     while(1){
 
         button = hid_button_read();
-        frame_button_send(button);
+        internode_solenoid(button.left);
 
         _delay_ms(100);
 
         slider = hid_slider_read();
-        frame_slider_send(slider);
-       // printf("%d \n\r", slider.left);
-
+        internode_position(slider.left);
+    
         _delay_ms(100);
 
         joystick = hid_joystick_read();
-        frame_joystick_send(joystick); 
+        internode_speed(joystick.x); 
+        internode_servo(joystick.y);
 
         _delay_ms(100);
 
@@ -94,7 +93,7 @@ int main(){
 
         joystick_last_position = joystick.position;
 
-        //KAN IKKE LESE HVIS LINJEN ER BRUTT FRA START
+        
         /*
         if(can_recv(&recv_ir)){
             display_print(7, "Broken", 0);
@@ -103,45 +102,7 @@ int main(){
         else {
             display_print(7, "", 0);
         }
-        */
-       
-        //printf("0x%2x\n\r", can_test());
-        
-
-        /*frame_joystick_send(hid_joystick_read());
-
-        //_delay_ms(5);
-        if (can_recv(&test_recv)){
-            printf("id: %3d ", test_recv.id);
-            for(uint8_t i = 0; i < test_recv.size; i++){
-            printf("%3x", test_recv.buffer[i]);
-        }
-        printf("\n\r");
-        }
-*/
-        //printf("can_test: %x\t", can_test());
-        //printf("test_send: %x%x \t", test.buffer[0], test.buffer[1]);
-        //printf("test_recv: %x%x \n\r", test_recv.buffer[0], test.buffer[1]);
-        
-        /*
-        _delay_ms(5);
-
-        joystick = hid_joystick_read();
-        slider = hid_slider_read();
-        button = hid_button_read();
-
-        printf(
-            "BL: %1d BR: %1d JX: %3d JY: %3d JP: %1d SL: %3d SR: %3d\n\r",
-            button.left,
-            button.right,
-            joystick.x,
-            joystick.y,
-            joystick.position,
-            slider.left,
-            slider.right
-        );
- */
-        
+        */ 
     }
 
     return 0;
