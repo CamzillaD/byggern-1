@@ -1,6 +1,5 @@
 #include "motor.h"
 #include "sam.h"
-#include "pid_regulator.h"
 
 #include "uart_and_printf/printf-stdarg.h"
 
