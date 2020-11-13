@@ -66,3 +66,12 @@ void internode_command(InternodeCommand * p_command){
     p_command->position_or_speed = m_command.position_or_speed;
     p_command->command_type = m_command.command_type;
 }
+
+void internode_end_game(){
+    CAN_MESSAGE end_game_frame;
+
+    end_game_frame.id = INTERNODE_ID_END_GAME;
+    end_game_frame.data_length = 0;
+
+    can_send(&end_game_frame, 0);
+}
