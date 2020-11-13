@@ -24,15 +24,17 @@ void motor_init(){
 }
 
 void motor_command_speed(uint8_t speed){
-    if(speed > 124 && speed < 131){
+    if(speed >= 127 && speed <= 128){
         DACC->DACC_CDR = 0x000;
     }
-    else if(speed <= 124){
+    else if(speed < 127){
         m_direction_left();
-        DACC->DACC_CDR = 4092 - 33 * speed;
+        /* 0xfff - speed * 32 */
+        DACC->DACC_CDR = 0xfff - (speed << 5);
     }
-    else if(speed >= 131){
+    else if(speed > 128){
         m_direction_right();
-        DACC->DACC_CDR = 33 * speed - 4323;
+        /* speed * 32 - 0xfff */
+        DACC->DACC_CDR = (speed << 5) - 0xfff;
     }
 }
