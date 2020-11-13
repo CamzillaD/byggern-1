@@ -15,17 +15,16 @@ void ir_beam_init(){
                 | ADC_MR_SLEEP_NORMAL
                 ;
 
-    /* Enable channel 0 */
-    ADC->ADC_CHER = ADC_CHER_CH0;
-
-    /* Software reset ADC */
+      /* Software reset ADC */
     ADC->ADC_CR = ADC_CR_SWRST;
 
-    //PIOA->PIO_PER = PIO_PDR_P16; //enable pin 2
+    /* Enable channel 0 */
+    ADC->ADC_CHER = ADC_CHER_CH0;
 }
 
 
 uint8_t ir_beam_broken(){
+    ADC->ADC_CR = ADC_CR_START;
     uint32_t ir_adc = ADC->ADC_CDR[0];
 
     if (ir_adc < IR_THRESHOLD){
@@ -40,5 +39,4 @@ uint8_t ir_beam_broken(){
     }
     return 0;   
 }
-
 
