@@ -1,6 +1,6 @@
 #include "pid_regulator.h"
 
-Pid pid_new(){
+Pid pid_regulator_new(){
     Pid pid;
 
     pid.integrator = 0.0;
@@ -9,17 +9,14 @@ Pid pid_new(){
     pid.prev_sample = 0.0;
     pid.prev_error = 0.0;
 
-    /* SysTick at 30 ms period */
-    pid.t = 0.030;
-
     return pid;
 }
 
-double pid_step(Pid * p_pid, double set_point, double sample){
-    double error = set_point - sample;
+float pid_regulator_step(Pid * p_pid, float set_point, float sample){
+    float error = set_point - sample;
 
     /* Proportional */
-    double p_term = p_pid->k_p * error;
+    float p_term = p_pid->k_p * error;
 
     /* Integral */
     p_pid->integrator = p_pid->integrator
@@ -35,14 +32,14 @@ double pid_step(Pid * p_pid, double set_point, double sample){
     }
 
     /* Derivative */
-    double sample_diff = sample - p_pid->prev_sample;
+    float sample_diff = sample - p_pid->prev_sample;
     p_pid->differentiator = - (2.0 * p_pid->k_d * sample_diff
                             + (2.0 * p_pid->tau - p_pid->t)
                             * p_pid->differentiator)
                             / (2.0 * p_pid->tau + p_pid->t);
 
     /* Output clamp */
-    double u = p_term + p_pid->integrator + p_pid->differentiator;
+    float u = p_term + p_pid->integrator + p_pid->differentiator + p_pid->u_bias;
 
     if(u > p_pid->u_max){
         u = p_pid->u_max;

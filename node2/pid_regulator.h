@@ -3,33 +3,36 @@
 
 typedef struct {
     /* Gains */
-    double k_p;
-    double k_i;
-    double k_d;
+    float k_p;
+    float k_i;
+    float k_d;
 
     /* Sample time */
-    double t;
+    float t;
 
     /* Derivative low-pass filter time constart */
-    double tau;
+    float tau;
 
     /* Integrator limits */
-    double integral_min;
-    double integral_max;
+    float integral_min;
+    float integral_max;
 
     /* Output clamping */
-    double u_min;
-    double u_max;
+    float u_min;
+    float u_max;
+
+    /* Output bias */
+    float u_bias;
 
     /* Previous steps */
-    double integrator;
-    double differentiator;
-    double prev_sample;
-    double prev_error;
+    float integrator;
+    float differentiator;
+    float prev_sample;
+    float prev_error;
 } Pid;
 
-Pid pid_new();
+Pid pid_regulator_new();
 
-double pid_step(Pid * p_pid, double set_point, double sample);
+float pid_regulator_step(Pid * p_pid, float set_point, float sample);
 
 #endif
