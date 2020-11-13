@@ -2,7 +2,7 @@
 #define MENU_H
 #include <stdint.h>
 
-typedef void (* MenuItemFunction)();
+typedef uint8_t (* MenuItemFunction)();
 
 typedef struct MenuItem_s {
     const char * title;

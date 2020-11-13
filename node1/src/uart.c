@@ -13,7 +13,7 @@ void uart_init(){
 void uart_send(uint8_t byte){
     while(!(UCSR0A & (1<<UDRE0)));
 
-    UDR0=byte;
+    UDR0 = byte;
 }
 
 uint8_t uart_recv(){
@@ -21,15 +21,3 @@ uint8_t uart_recv(){
 
     return UDR0;
 }
-
-/*
-void uart_test(){
-    uart_init();
-    fdevopen(UART_Transmit,UART_recieve);
-
-    while(1){
-    printf("Hei");
-    _delay_ms(500);
-    }
-}
-*/

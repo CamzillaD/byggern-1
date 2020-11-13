@@ -1,11 +1,11 @@
 #include "spi.h"
 #include <avr/io.h>
 
-static void spi_slave_select(){
+static inline void spi_slave_select(){
     PORTB &= ~(1 << PB4);
 }
 
-static void spi_slave_deselect(){
+static inline void spi_slave_deselect(){
     PORTB |= (1 << PB4);
 }
 
@@ -20,25 +20,16 @@ void spi_init(){
     /* Enable SPI, Master mode */
     SPCR |= (1 << SPE) | (1 << MSTR);
 
-    /* Slow down SCK */
+    /* SCK = MCK / 128 */
     SPCR |= (1 << SPR0) | (1 << SPR1);
 }
 
-
-//spi_send and recieve
 void spi_shift(uint8_t * buffer, uint16_t size){
     spi_slave_select();
 
-    
-    for(int i = 0; i < size; i++){
-
-        //putter hver byte fra bufferen inn i SPI-Data register
+    for(uint16_t i = 0; i < size; i++){
         SPDR = buffer[i];
-
-
-        while(!(SPSR & (1 << SPIF))){ 
-
-        }
+        while(!(SPSR & (1 << SPIF)));
         buffer[i] = SPDR;
     }
 

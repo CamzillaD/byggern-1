@@ -1,8 +1,8 @@
 #include "ir_beam.h"
 #include "sam.h"
 
-#define IR_THRESHOLD 0x5dc
-#define CONSENSUS_THRESHOLD 5
+#define IR_THRESHOLD 350
+#define CONSENSUS_THRESHOLD 15
 static uint32_t m_ir_consensus = 0;
 
 void ir_beam_init(){

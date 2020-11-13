@@ -1,6 +1,5 @@
 #include "display.h"
 #include <stdint.h>
-#include <avr/interrupt.h>
 #include <avr/pgmspace.h>
 
 #define DISPLAY_C_MEM ((volatile uint8_t *)0x1000)
@@ -117,9 +116,6 @@ static void display_seek_page(uint8_t page){
 }
 
 void display_init(){
-    /* Globally disable interrupts during init */
-    cli();
-
     /* Display off */
     *DISPLAY_C_MEM = 0xae;
 
@@ -176,9 +172,6 @@ void display_init(){
 
     /* Turn display on */
     *DISPLAY_C_MEM = 0xaf;
-    
-    /* Enable interrupts after init */
-    sei();
 }
 
 void display_clear(){
@@ -277,5 +270,42 @@ void display_print_heading(const char * string){
     *DISPLAY_D_MEM = 0x00;
     for(uint8_t i = 0; i < 4; i++){
         *DISPLAY_D_MEM = 0x00;
+    }
+}
+
+void display_print_number(uint8_t line, uint16_t number){
+    display_seek_page(line);
+
+    for(uint8_t i = 0; i < 50; i++){
+        *DISPLAY_D_MEM = 0x00;
+    }
+
+    uint8_t str_buffer[8] = {0};
+
+    uint16_t burn_down = number;
+    uint8_t digits = 0;
+
+    while(burn_down){
+        digits++;
+        str_buffer[8 - digits] = (burn_down % 10) + '0';
+        burn_down /= 10;
+    }
+
+    for(uint8_t d = 0; d < digits - 1; d++){
+        *DISPLAY_D_MEM = 0x00;
+        *DISPLAY_D_MEM = 0x00;
+        *DISPLAY_D_MEM = 0x00;
+        *DISPLAY_D_MEM = 0x00;
+        *DISPLAY_D_MEM = 0x00;
+    }
+
+    while(digits){
+        uint8_t letter = str_buffer[8 - digits];
+
+        for(uint8_t i = 0; i < DISPLAY_FONT_WIDTH; i++){
+            *DISPLAY_D_MEM = pgm_read_byte(m_font[letter - 0x20] + i);
+        }
+
+        digits--;
     }
 }

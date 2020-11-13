@@ -14,7 +14,7 @@ typedef struct {
     InternodeCommandType command_type;
 } InternodeCommand;
 
-void internode_command(InternodeCommand * p_command);
+extern InternodeCommand g_COMMAND;
 
 void internode_end_game();
 

@@ -1,21 +1,32 @@
 #include <avr/io.h>
+
 #include "uart.h"
-#include "hid.h"
 #include "display.h"
-#include "can.h"
 #include "menu.h"
 #include "internode.h"
 
-#define F_CPU 4915200UL
-
+#define F_CPU 4915200ul
 #include <util/delay.h>
-#include <stdio.h>
+
 #include <avr/interrupt.h>
 
-static void system_init(){
+#include "adc.h"
+
+#include "spi.h"
+#include "mcp2515.h"
+#include "can.h"
+
+#include "score_counter.h"
+#include "joystick.h"
+#include "slider.h"
+#include "hid.h"
+
+#include <stdlib.h>
+
+
+static inline void system_init(){
     /* System clock prescaler of 1 */
     CLKPR = (1 << CLKPCE);
-    //CLKPR = (1 << CLKPS3);
 
     /* Enable external memory interface */
     MCUCR |= (1 << SRE);
@@ -24,86 +35,151 @@ static void system_init(){
     SFIOR |= (1 << XMM2);
 }
 
-int main(){
-
-    system_init();
-    hid_init();
-    sei();
-    display_init();
-    uart_init();
+static void m_show_menu(){
     display_clear();
-    can_init();
 
+    Joystick joystick;
+    const MenuItem * p_item = menu_root_node();
+    uint8_t item_selected = 0;
 
-    fdevopen((int (*)(char, FILE*)) uart_send,(int (*)(FILE*)) uart_recv);
+    uint8_t remain_in_menu = 1;
 
+    while(remain_in_menu){
+        menu_print(p_item, item_selected);
 
-    volatile uint8_t * disp_c = (volatile uint8_t *)0x1000;
-    volatile uint8_t * disp_d = (volatile uint8_t *)0x1200;
+        joystick_read(&joystick);
+        if(joystick.position_changed){
+            switch(joystick.position){
+                case JOYSTICK_UP:
+                if(item_selected > 0)
+                    item_selected--;
+                break;
 
-    printf("Node1 fungerer ikke \n\r");
- 
-    const MenuItem * p_menu_item = menu_root_node();
-    uint8_t menu_selected_item = 0;
-   
-    HidJoystick joystick;
-    HidJoystickPosition joystick_last_position = HID_JOYSTICK_CENTER;
-    HidButton button;
-    HidSlider slider;
-    CanFrame recv_ir;
+                case JOYSTICK_DOWN:
+                if(item_selected < menu_children(p_item, NULL) - 1)
+                    item_selected++;
+                break;
+
+                case JOYSTICK_RIGHT:
+                remain_in_menu = (p_item + item_selected + 1)->action();
+                break;
+            }
+        }
+    }
+}
+
+static void m_play_game(){
+    Joystick joystick;
+    uint8_t slider_left, slider_right;
+
+    /* Ignore three least significant bits in joystick x */
+    uint8_t mask_joystick_x = 0xf8;
+
+    uint8_t joystick_x_last = 0;
+
+    /* Ignore three least significant bits in sliders */
+    uint8_t mask_slider_left = 0xf8;
+    uint8_t mask_slider_right = 0xf8;
+
+    uint8_t slider_left_last = 0;
+    uint8_t slider_right_last = 0;
+
+    score_counter_start();
 
     while(1){
+        uint16_t score = score_counter_end();
+        display_clear();
+        display_print(0, "Playing Game", 0);
+        display_print_number(3, score);
 
-        button = hid_button_read();
-        internode_solenoid(button.left);
+        joystick_read(&joystick);
+        slider_read(&slider_left, &slider_right);
 
-        _delay_ms(100);
+        slider_left &= mask_slider_left;
+        slider_right &= mask_slider_right;
 
-        slider = hid_slider_read();
-        internode_position(slider.left);
+        joystick.x &= mask_joystick_x;
+
+        /* Remote solenoid */
+        if(hid_button_read().right){
+            internode_solenoid(1);
+        }
+        else{
+            internode_solenoid(0);
+        }
+
+        /* Right slider for remote position */
+        if(slider_right != slider_right_last){
+            internode_position(slider_right);
+        }
+
+        /* Joystick horizontal for remote gimbal */
+        if(joystick.x != joystick_x_last){
+            internode_servo(joystick.x);
+        }
+
+        joystick_x_last = joystick.x;
+        slider_right_last = slider_right;
+        slider_left_last = slider_left;
+
+        if(internode_end_game()){
+            return;
+        }
+    }
+}
+
+static void m_show_score(){
+    uint16_t score = score_counter_end();
+    display_clear();
+    display_print(0, "Final Score", 0);
+    display_print_number(3, score);
+
+    _delay_ms(4000);
+}
+
+
+int main(){
+    cli();
+    system_init();
+
+    uart_init();
+    adc_init();
+    hid_init();
     
-        _delay_ms(100);
+    display_init();
 
-        joystick = hid_joystick_read();
-        internode_speed(joystick.x); 
-        internode_servo(joystick.y);
+    spi_init();
+    mcp_init();
+    can_init();
 
-        _delay_ms(100);
+    score_counter_init();
 
+    internode_reset();
 
+    sei();
 
-        menu_print(p_menu_item, menu_selected_item);
-
-        if(joystick.position == HID_JOYSTICK_DOWN
-            && joystick_last_position != HID_JOYSTICK_DOWN
-            && menu_selected_item < 2
-        ){
-            menu_selected_item++;
-        }
-        if(joystick.position == HID_JOYSTICK_UP
-            && joystick_last_position != HID_JOYSTICK_UP
-            && menu_selected_item > 0
-        ){
-            menu_selected_item--;
-        }
-
-        if(joystick.position == HID_JOYSTICK_RIGHT){
-            printf("Menu item chosen: %d\n\r", menu_selected_item);
-        }
-
-        joystick_last_position = joystick.position;
-
-        
-        /*
-        if(can_recv(&recv_ir)){
-            display_print(7, "Broken", 0);
-            printf("%d\n\r", (uint8_t)recv_ir.buffer[1]);
-        }
-        else {
-            display_print(7, "", 0);
-        }
-        */ 
+    
+    while(1){
+        m_show_menu();
+        m_play_game();
+        m_show_score();
     }
 
     return 0;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

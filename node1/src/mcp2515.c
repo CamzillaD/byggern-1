@@ -7,29 +7,36 @@
 #define MCP_BIT_MODIFY 0x05
 
 void mcp_init(){
-    spi_init();
+    uint8_t command[] = {
+        MCP_RESET
+    };
 
-    //reseter MCP
-    uint8_t command = MCP_RESET;
-    spi_shift(&command, 1);
-
+    spi_shift(command, 1);
 }
 
 uint8_t mcp_read(uint8_t address){
-    uint8_t command[] = {MCP_READ, address, 0x00};
+    uint8_t command[] = {
+        MCP_READ, address, 0x00
+    };
+
     spi_shift(command, 3);
 
     return command[2];
 }
 
 void mcp_write(uint8_t address, uint8_t data){
-    uint8_t command[] = {MCP_WRITE, address, data};
+    uint8_t command[] = {
+        MCP_WRITE, address, data
+    };
+
     spi_shift(command, 3);
 }
 
-//setting of cleaning individual bits in spefific status and control registers
 void mcp_bit_modify(uint8_t address, uint8_t bit, uint8_t data){
-    uint8_t command[] = {MCP_BIT_MODIFY, address, bit, data ? 0xff : 0x00};
+    uint8_t command[] = {
+        MCP_BIT_MODIFY, address, bit, data ? 0xff : 0x00
+    };
+
     spi_shift(command, 4);
 }
 

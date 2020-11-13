@@ -14,6 +14,7 @@
 #include "motor_position.h"
 
 #include "internode.h"
+#include "real_time.h"
 
 static inline void m_watchdog_disable(){
     WDT->WDT_MR = WDT_MR_WDDIS;
@@ -25,10 +26,13 @@ int main(){
 
     uart_init();
     can_init(0x00290561, 1, 2);
+    printf("System Reset\n\r");
 
     solenoid_init();
     ir_beam_init();
     servo_init();
+
+    real_time_init();
     
     encoder_init();
     motor_init();
@@ -38,50 +42,24 @@ int main(){
     motor_position_tracking_enable();
 
     while(1){
-        for(uint32_t i = 0; i < 8000000; i++){
-            __asm__("nop;");
-        }
-        motor_position_set_reference(10);
-        servo_command_gimbal(0x00);
-        printf("Ref 10\n\r");
-
-        for(uint32_t i = 0; i < 8000000; i++){
-            __asm__("nop");
-        }
-        motor_position_set_reference(200);
-        servo_command_gimbal(0xff);
-        printf("Ref 200\n\r");
-    }
-
-    InternodeCommand command;
-
-    while(1){
         if(ir_beam_broken()){
-            internode_end_game();
+            if(real_time_incremented()){
+                internode_end_game();
+            }
         }
 
-        internode_command(&command);
-
-        if(command.solenoid){
+        if(g_COMMAND.solenoid){
             solenoid_activate();
         }
         else{
             solenoid_deactivate();
         }
 
-        servo_command_gimbal(command.servo);
+        servo_command_gimbal(g_COMMAND.servo);
 
-        switch(command.command_type){
-            case INTERNODE_COMMAND_POSITION:
-            motor_position_set_reference(command.position_or_speed);
-            motor_position_tracking_enable();
-            break;
-
-            case INTERNODE_COMMAND_SPEED:
-            motor_command_speed(command.position_or_speed);
-            motor_position_tracking_disable();
-            break;
-        }        
+        motor_position_set_reference(
+            0xff - g_COMMAND.position_or_speed
+        );
     }
 }
 
