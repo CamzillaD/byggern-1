@@ -5,7 +5,6 @@
 #include "can_controller.h"
 #include "play_ping_pong.h"
 
-#include "timer.h"
 #include "servo.h"
 #include "ir.h"
 #include "motor.h"
@@ -23,7 +22,6 @@ static inline void m_watchdog_disable(){
 int main()
 {
     SystemInit();
-    timer_pwm_init();
     ir_adc_init();
     solenoid_init();
 
@@ -33,6 +31,7 @@ int main()
     can_init(0x00290561, 1, 2);
 
 
+    servo_init();
     
     encoder_init();
     motor_init();
@@ -46,12 +45,14 @@ int main()
             __asm__("nop;");
         }
         motor_position_set_reference(10);
+        servo_command_gimbal(0x00);
         printf("Ref 10\n\r");
 
         for(uint32_t i = 0; i < 8000000; i++){
             __asm__("nop");
         }
         motor_position_set_reference(200);
+        servo_command_gimbal(0xff);
         printf("Ref 200\n\r");
     }
 }
