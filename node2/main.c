@@ -12,8 +12,13 @@
 #include "solenoid.h"
 #include "pid_regulator.h"
 #include "sam.h"
-#include "pid_regulator_clock.h"
 
+#include "encoder.h"
+#include "motor_position.h"
+
+static inline void m_watchdog_disable(){
+    WDT->WDT_MR = WDT_MR_WDDIS;
+}
 
 int main()
 {
@@ -21,158 +26,33 @@ int main()
     timer_pwm_init();
     ir_adc_init();
     solenoid_init();
-    play_ping_pong_init();
 
-    WDT->WDT_MR = WDT_MR_WDDIS; //Disable Watchdog Timer
+    m_watchdog_disable();
 
-    //CAN_BR = 0x00069333
     uart_init();
-    //0x007f1633
     can_init(0x00290561, 1, 2);
-    printf("Mye dyrere enn studentvin\n\r");
-
-    CAN_MESSAGE test;
-    test.data[0] = 0xff;
-    test.data[1] = 0x31;
-    test.data[2] = 0x11;
-    test.data[3] = 0xa0;
-    test.data[4] = 0x0e;
-    test.data[5] = 0xad;
-    test.data[6] = 0xad;
-    test.id = 0x09;
-    test.data_length = 7;
-    can_send(&test,0);
-
-    CAN_MESSAGE recv_can;
-    test.data[0] = 0x00;
-
-    CAN_MESSAGE send_can;
-    test.data[0] = 0x00;
 
 
-    Pid pid = pid_new();
-    pid.k_p = 1.0;
-    pid.k_i = 0.05;
-    pid.k_d = 0.0;
-    pid.tau = 0.0;
-    pid.t = 0.001;
-
-    motor_init(pid);
-    printf("%d \n\r", 22);
-
-    pid_regulator_clock_enable();
-
-    while (1){
-        
-
-        continue;
-        //motor_command_position(0);
-        //motor_delay(50000);
     
-    /*
-        motor_dac_set_speed(0x07);
-        delay(50000);
-        motor_dac_set_speed(-0x0);
-        delay(50000);
-        motor_dac_set_speed(0x04);
-        delay(50000);
-    */
-   // printf("%d \n\r", motor_read_encoder());
+    encoder_init();
+    motor_init();
 
+    motor_position_init();
+    motor_position_set_reference(127.0);
+    motor_position_tracking_enable();
 
-   //  Funksjon for å teste can-meldingene 
-
-
-        if (can_receive(&recv_can, 0)){
-
-            if(recv_can.id == 0x16){
-                float value2 = recv_can.data[0] /255.0;
-                timer_set_duty_cycle(value2);
-                //printf("%d \n\r",recv_can.data[0]);
-            }
-            
-            //slider no work, use joystikck?
-            if(recv_can.id == 0x12){}
-                int16_t value = recv_can.data[0];
-                motor_command_speed(value); 
-                printf("%d \n\r", value );
-            }
-            
-            if(recv_can.id == 0x18 & recv_can.data[0]){
-                //printf("%d \n\r",recv_can.data[0]);
-                solenoid_activate();
-            }
-            else{
-                solenoid_deactivate();
-            }
-
-
-/*        
-     REG_PIOC_SODR = PIO_SODR_P12;
-    delay(1000);pid_step(&m_position_pid, set_point, sample);
-     REG_PIOC_CODR = PIO_CODR_P12;
-    delay(1000);
-*/
-
-/* if(ir_beam_broken()){
-            send_can.data[0] = ir_beam_broken();
-            send_can.data[1] = play_ping_pong_read_score();
-            can_send(&send_can, 0);
+    while(1){
+        for(uint32_t i = 0; i < 8000000; i++){
+            __asm__("nop;");
         }
-        
-    if (can_receive(&test_broken, 0)){ if(ir_beam_broken()){
-            send_can.data[0] = ir_beam_broken();
-            send_can.data[1] = play_ping_pong_read_score();
-            can_send(&send_can, 0);
+        motor_position_set_reference(10);
+        printf("Ref 10\n\r");
+
+        for(uint32_t i = 0; i < 8000000; i++){
+            __asm__("nop");
         }
-        
-                solenoid_activate();
-            }
-            else{
-                solenoid_deactivate();
-            }
-        }
-    }
-
-    */
-
-        //motor_dac_send(0xaaaa);
-        //uint32_t score = play_ping_pong_read_score();
-        //printf("%d.%2d s\n\r", score/4,25* (score % 4));
-       
-        //ADC->ADC_CR = ADC_CR_START;
-         /*   
-             if(ir_beam_broken()){
-            send_can.data[0] = ir_beam_broken();
-            send_can.data[1] = play_ping_pong_read_score();
-            can_send(&send_can, 0);
-        }
-    */
-
-/*
-        while (!(ADC->ADC_ISR & ADC_ISR_EOC0)){}
-        printf("%d \n\r", ir_beam_broken());
-*/        
-    
-    /*
-        if(ir_beam_broken()){
-            send_can.data[0] = ir_beam_broken();
-            send_can.data[1] = play_ping_pong_read_score();
-            can_send(&send_can, 0);
-        }
-        
-       */ 
-
-     
-    /*
-        printf("%x \n\r", CAN0->CAN_SR);
-        REG_PIOA_SODR = (PIO_PA19) | (PIO_PA20);
-        delay(1);
-        REG_PIOA_CODR = (PIO_PA19) | (PIO_PA20);
-        delay(1);
-        printf("%4x \n\r", timer_read_cv());
-
-        */
+        motor_position_set_reference(200);
+        printf("Ref 200\n\r");
     }
 }
 
