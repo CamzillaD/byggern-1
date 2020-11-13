@@ -3,34 +3,31 @@
 #include "uart_and_printf/uart.h"
 #include "uart_and_printf/printf-stdarg.h"
 #include "can_controller.h"
-#include "play_ping_pong.h"
 
 #include "servo.h"
-#include "ir.h"
+#include "ir_beam.h"
 #include "motor.h"
 #include "solenoid.h"
-#include "pid_regulator.h"
 #include "sam.h"
 
 #include "encoder.h"
 #include "motor_position.h"
 
+#include "internode.h"
+
 static inline void m_watchdog_disable(){
     WDT->WDT_MR = WDT_MR_WDDIS;
 }
 
-int main()
-{
+int main(){
     SystemInit();
-    ir_adc_init();
-    solenoid_init();
-
     m_watchdog_disable();
 
     uart_init();
     can_init(0x00290561, 1, 2);
 
-
+    solenoid_init();
+    ir_beam_init();
     servo_init();
     
     encoder_init();
@@ -54,6 +51,37 @@ int main()
         motor_position_set_reference(200);
         servo_command_gimbal(0xff);
         printf("Ref 200\n\r");
+    }
+
+    InternodeCommand command;
+
+    while(1){
+        if(ir_beam_broken()){
+            internode_end_game();
+        }
+
+        internode_command(&command);
+
+        if(command.solenoid){
+            solenoid_activate();
+        }
+        else{
+            solenoid_deactivate();
+        }
+
+        servo_command_gimbal(command.servo);
+
+        switch(command.command_type){
+            case INTERNODE_COMMAND_POSITION:
+            motor_position_set_reference(command.position_or_speed);
+            motor_position_tracking_enable();
+            break;
+
+            case INTERNODE_COMMAND_SPEED:
+            motor_command_speed(command.position_or_speed);
+            motor_position_tracking_disable();
+            break;
+        }        
     }
 }
 
